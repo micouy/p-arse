@@ -62,6 +62,20 @@ trait Parser<'a>: Sized {
             marker: PhantomData,
         }
     }
+
+	fn not_ahead(self) -> NegativePredicate<'a, Self> {
+		NegativePredicate {
+            parser: self,
+            marker: PhantomData,
+        }
+	}
+
+	fn ahead(self) -> PositivePredicate<'a, Self> {
+		PositivePredicate {
+            parser: self,
+            marker: PhantomData,
+        }
+	}
 }
 
 // impl Parser for F (and &F and &&F etc...)
@@ -309,6 +323,40 @@ where
     }
 }
 
+struct NegativePredicate<'a, P> where P: Parser<'a> {
+    parser: P,
+    marker: PhantomData<&'a ()>,
+}
+
+impl<'a, P> Parser<'a> for NegativePredicate<'a, P> where P: Parser<'a> {
+    type Output = ();
+
+    fn p_arse(&self, tail: &'a str) -> Result<'a, Self::Output> {
+		if self.parser.p_arse(tail).is_err() { 
+    		Ok(((), tail))
+		} else {
+			Err(Error {})
+		}
+	}
+}
+
+struct PositivePredicate<'a, P> where P: Parser<'a> {
+    parser: P,
+    marker: PhantomData<&'a ()>,
+}
+
+impl<'a, P> Parser<'a> for PositivePredicate<'a, P> where P: Parser<'a> {
+    type Output = ();
+
+    fn p_arse(&self, tail: &'a str) -> Result<'a, Self::Output> {
+		if self.parser.p_arse(tail).is_ok() { 
+    		Ok(((), tail))
+		} else {
+			Err(Error {})
+		}
+	}
+}
+
 struct Any {}
 
 impl<'a> Parser<'a> for Any {
@@ -402,6 +450,16 @@ fn main() {
     assert!(scream.p_arse("aaa").is_ok());
 
 
+    // Look-ahead.
+    let a_ahead = "a".ahead();
+    assert!(a_ahead.p_arse("aaa").is_ok());
+    assert!(a_ahead.p_arse("bbb").is_err());
+
+    let a_not_ahead = "a".not_ahead();
+    assert!(a_not_ahead.p_arse("bbb").is_ok());
+    assert!(a_not_ahead.p_arse("aaa").is_err());
+
+
     // All at once.
     let abc = ("a", "b", "c"); // "a" "b" "c"
     let join_abc =
@@ -419,4 +477,7 @@ fn main() {
     assert_eq!(abcxd.p_arse("abc").unwrap().0, "abc");
     assert_eq!(abcxd.p_arse("xd").unwrap().0, "xd");
     assert_eq!(abcxd.p_arse("x").unwrap().0, "x");
+
+	let until_newline = ('\n'.not_ahead(), any()).zore();
+	dbg!(until_newline.p_arse("first line\nsecond line\n").unwrap().1);
 }

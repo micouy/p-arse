@@ -9,20 +9,20 @@ parsers
 - [x] non-terminals i.e. parser functions, including recursive functions
   ```
   fn a_string(tail: &str) -> Result<'_, ()> {
-      ("a", a_string().opt())
+      ('a', a_string().opt())
           .ignore()
           .parse(tail)
   }
   ```
-- [x] sequences (`("a", "b", "c")`)
-- [x] prioritized choice (`"A".or("B")`)
-- [x] zero or more repetitions (`"b".zore()`)
-- [ ] not-predicate (`!"x"`)
-- [ ] syntactic sugar
+- [x] sequences (`(a, b, c)`)
+- [x] prioritized choice (`a.or(b)`)
+- [x] zero or more repetitions (`a.zore()`)
+- [x] not-predicate (`a.not_ahead()`)
+- [x] syntactic sugar
   - [x] any (`any()`)
-  - [x] one or more (`"a".more()`)
-  - [x] optionals (`"x".opt()`)
-  - [ ] and-predicate (???)
+  - [x] one or more (`a.more()`)
+  - [x] optionals (`a.opt()`)
+  - [x] and-predicate (`a.ahead()`)
 
 
 other
