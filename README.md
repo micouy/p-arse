@@ -9,7 +9,7 @@
 - [ ] terminals
   - [x] string slices (`"abc"`)
   - [x] chars (`'A'`)
-  - [ ] char ranges (`'a'.to('z')`)
+  - [x] char ranges (`'a'.to('z')`)
   - [ ] regex, other `Pattern`s
 - [x] non-terminals i.e. parser functions, including recursive functions
   ```
@@ -23,7 +23,7 @@
 - [x] prioritized choice (`a.or(b)`)
 - [x] zero or more repetitions (`a.zore()`)
 - [x] not-predicate (`a.not_ahead()`, looking for a more concise name)
-- [ ] end of file
+- [x] end of file (`eof()`)
 - [x] syntactic sugar
   - [x] any (`any()`)
   - [x] one or more (`a.more()`)
@@ -33,10 +33,12 @@
 
 **todo**
 
-- [ ] `.and_then()` for further processing that might fail
+- [ ] add `.and_then()` for further processing that might fail
 - [ ] clean error messages with parsing stack
 - [ ] fix impl Parser for F and for &P (conflicting)
 - [ ] make each parser return the whole string slice it has captured (its children's captures concatenated)
+- [ ] add docs
+- [ ] add a method that would parse and return only the parsed value (?)
 
 
 **reference**

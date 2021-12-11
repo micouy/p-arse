@@ -14,6 +14,7 @@ fn main() {
 
             sequence
         };
+	let parse_file = |(_, entries, _)| entries;
 
     // Recognition.
     let nl = '\n';
@@ -29,7 +30,7 @@ fn main() {
 
     let entry = (header, sequence);
 
-    let file = (nl.zore(), entry.zore()).map(|(_nls, entries)| entries);
+    let file = (nl.zore(), entry.zore(), eof()).map(parse_file);
 
     // `\` at the end of the line in string means 'ignore following whitespace'.
     let fasta = "\
@@ -46,7 +47,5 @@ fn main() {
     ";
 
     let (fasta, _) = file.p_arse(fasta).unwrap();
-
-    assert_eq!(fasta.len(), 2);
     dbg!(fasta);
 }

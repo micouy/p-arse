@@ -18,3 +18,22 @@ impl<'a> Parser<'a> for Any {
 pub fn any() -> Any {
     Any {}
 }
+
+#[derive(Copy, Clone)]
+pub struct EndOfFile {}
+
+impl<'a> Parser<'a> for EndOfFile {
+    type Output = ();
+
+    fn p_arse(&self, tail: &'a str) -> Result<'a, Self::Output> {
+		if tail.is_empty() {
+			Ok(((), tail))
+		} else {
+			Err(Error {})
+		}
+    }
+}
+
+pub fn eof() -> EndOfFile {
+    EndOfFile {}
+}
