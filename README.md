@@ -1,3 +1,7 @@
+# `( ㅅ )`
+
+> `p-arse` — the inelegant parser
+
 parsers
 
 - [x] empty string (covered by string slices)
