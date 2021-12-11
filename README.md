@@ -2,18 +2,19 @@
 
 > `p-arse` — the inelegant parser
 
-parsers
+
+**parsers**
 
 - [x] empty string (covered by string slices)
 - [ ] terminals
   - [x] string slices (`"abc"`)
   - [x] chars (`'A'`)
-  - [ ] char ranges (`'a'..'z'`)
+  - [ ] char ranges (`'a'.to('z')`)
   - [ ] regex, other `Pattern`s
 - [x] non-terminals i.e. parser functions, including recursive functions
   ```
   fn a_string(tail: &str) -> Result<'_, ()> {
-      ('a', a_string().opt())
+      ('a', a_string.opt())
           .ignore()
           .parse(tail)
   }
@@ -21,15 +22,16 @@ parsers
 - [x] sequences (`(a, b, c)`)
 - [x] prioritized choice (`a.or(b)`)
 - [x] zero or more repetitions (`a.zore()`)
-- [x] not-predicate (`a.not_ahead()`)
+- [x] not-predicate (`a.not_ahead()`, looking for a more concise name)
+- [ ] end of file
 - [x] syntactic sugar
   - [x] any (`any()`)
   - [x] one or more (`a.more()`)
   - [x] optionals (`a.opt()`)
-  - [x] and-predicate (`a.ahead()`)
+  - [x] and-predicate (`a.ahead()`, looking for a more concise name)
 
 
-other
+**todo**
 
 - [ ] `.and_then()` for further processing that might fail
 - [ ] clean error messages with parsing stack
@@ -37,6 +39,6 @@ other
 - [ ] make each parser return the whole string slice it has captured (its children's captures concatenated)
 
 
-reference
+**reference**
 
 1. https://bford.info/pub/lang/peg.pdf
