@@ -1,4 +1,4 @@
-use p_arse::prelude::*;
+use p_arse::{Parser, Result, any};
 
 #[test]
 fn test_literals() {

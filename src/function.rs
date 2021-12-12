@@ -1,3 +1,5 @@
+//! Implementation of [`Parser`] for functions.
+
 use crate::{Parser, Result};
 
 impl<'a, F, T> Parser<'a> for F

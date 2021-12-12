@@ -1,4 +1,4 @@
-use p_arse::prelude::*;
+use p_arse::{any, eoi, CharExt, Parser};
 
 fn main() {
     // Parsing.
@@ -8,7 +8,7 @@ fn main() {
     let concat_subsequence = |cs: Vec<char>| cs.iter().collect::<String>();
     let parse_sequence =
         |(first, tail, _nls): (String, Vec<(_, String)>, _)| {
-            let mut sequence = first.to_string();
+            let mut sequence = first;
             tail.into_iter()
                 .for_each(|(_nl, subsequence)| sequence.push_str(&subsequence));
 
@@ -30,7 +30,7 @@ fn main() {
 
     let entry = (header, sequence);
 
-    let file = (nl.zore(), entry.zore(), eof()).map(parse_file);
+    let file = (nl.zore(), entry.zore(), eoi()).map(parse_file);
 
     // `\` at the end of the line in string means 'ignore following whitespace'.
     let fasta = "\

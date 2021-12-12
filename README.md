@@ -23,10 +23,10 @@
 - [x] prioritized choice (`a.or(b)`)
 - [x] zero or more repetitions (`a.zore()`)
 - [x] not-predicate (`a.not_ahead()`, looking for a more concise name)
-- [x] end of file (`eof()`)
+- [x] end of input (`eoi()`)
 - [x] syntactic sugar
   - [x] any (`any()`)
-  - [x] one or more (`a.more()`)
+  - [x] one or more repetitions (`a.more()`)
   - [x] optionals (`a.opt()`)
   - [x] and-predicate (`a.ahead()`, looking for a more concise name)
 

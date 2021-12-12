@@ -1,3 +1,5 @@
+//! String slices and characters.
+
 use crate::{pattern::pat, Error, Parser, Result};
 
 impl<'a> Parser<'a> for &str {
@@ -25,12 +27,22 @@ impl<'a> Parser<'a> for char {
     }
 }
 
+/// A [`Copy`] [`char`] range.
 #[derive(Copy, Clone)]
 pub struct CharRange {
     from: char,
     to: char,
 }
 
+/// Trait enabling a concise syntax for construction of [`CharRange`].
+///
+/// # Examples
+///
+/// ```
+/// use p_arse::CharExt;
+///
+/// let a_to_z = 'a'.to('z');
+/// ```
 pub trait CharExt {
     fn to(self, to: char) -> CharRange;
 }

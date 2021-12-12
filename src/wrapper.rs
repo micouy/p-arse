@@ -1,5 +1,3 @@
-//! Higher order parsers.
-
 use std::marker::PhantomData;
 
 use crate::{Error, Parser, Result};
