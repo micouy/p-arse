@@ -14,7 +14,7 @@ fn main() {
 
             sequence
         };
-	let parse_file = |(_, entries, _)| entries;
+    let parse_file = |(_, entries, _)| entries;
 
     // Recognition.
     let nl = '\n';
@@ -34,7 +34,7 @@ fn main() {
 
     // `\` at the end of the line in string means 'ignore following whitespace'.
     let fasta = "\
-	>MCHU - Calmodulin - Human, rabbit, bovine, rat, and chicken\n\
+    >MCHU - Calmodulin - Human, rabbit, bovine, rat, and chicken\n\
     MADQLTEEQIAEFKEAFSLFDKDGDGTITTKELGTVMRSLGQNPTEAELQDMINEVDADGNGTID\n\
     FPEFLTMMARKMKDTDSEEEIREAFRVFDKDGNGYISAAELRHVMTNLGEKLTDEEVDEMIREA\n\
     DIDGDGQVNYEEFVQMMTAK*\n\

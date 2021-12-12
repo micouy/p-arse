@@ -1,4 +1,4 @@
-use crate::{pattern::pat, Parser, Result, Error};
+use crate::{pattern::pat, Error, Parser, Result};
 
 impl<'a> Parser<'a> for &str {
     type Output = &'a str;
