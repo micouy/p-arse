@@ -25,6 +25,39 @@ pub type Result<'a, T> = std::result::Result<(T, &'a str), Error>;
 ///   corresponding to various operators in PEG,
 /// - [`any()`](crate::any), matching any character,
 /// - [`eoi()`](crate::eoi), matching the end of input.
+///
+/// # Notes on designing new higher order parsers
+///
+/// The set of higher order parsers (constructed using [`Parser`]'s methods)
+/// is not meant to be extended by the user. The provided methods aim to be
+/// general enough to suffice in most cases. However, if the user wishes
+/// to do it anyways, it is advised to define a new `ParserExt<'a>` trait and
+/// implement it for all `P: Parser<'a>`. The choice of using methods over
+/// functions in `p-arse` was deliberate and this solution ensures the
+/// consistency of syntax and readability.
+///
+/// ```
+/// use p_arse::Parser;
+///
+/// use std::marker::PhantomData;
+///
+/// struct MyParser<'a, P> where P: Parser<'a> {
+///     parser: P,
+///     marker: PhantomData<&'a ()>,
+/// }
+///
+/// trait ParserExt<'a>: Parser<'a> {
+///     fn my_parser(self) -> MyParser<'a, Self> {
+///         MyParser { parser: self, marker: PhantomData }
+///     }
+/// }
+///
+/// impl<'a, P> ParserExt<'a> for P where P: Parser<'a> {}
+///
+/// fn main() {
+///     let higher_order_parser = 'a'.my_parser();
+/// }
+/// ```
 pub trait Parser<'a>: Sized + Clone {
     type Output;
 
