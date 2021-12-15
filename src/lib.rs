@@ -3,14 +3,15 @@
 //! # `( ㅅ )` the inelegant parser
 //!
 //! `p-arse` is a PEG parser library. It provides [`Parser`] trait with
-//! methods corresponding to PEG parsers and some basic utils —
-//! [`any`] and [`eoi`]. It's not meant to be extended by the user.
+//! methods corresponding to PEG parsers and some basic [`utils`].
+//!
+//! **WARNING**: Error handling has not been implemented yet.
 //!
 //! The main focus of this library is simple syntax, type safety and easy
 //! debugging. It attempts to follow the original PEG syntax as closely as
 //! possible. Speed and efficiency are secondary.
 //!
-//! For now it only contains tools for dealing with complete strings.
+//! For now the library only contains tools for dealing with complete strings.
 //! It may be developed in the future to cover byte slices and incomplete
 //! input, although I'm not planning to do it at the moment.
 //!
@@ -67,17 +68,19 @@
 //! ```
 
 
-mod function;
-mod sequence;
+pub mod function; // No exports, impls only.
+mod sequence; // No exports, impls only.
 
+pub mod error;
 pub mod literal;
 pub mod parser;
-pub mod pattern;
 pub mod utils;
 pub mod wrapper;
 
 pub use crate::{
+    error::{Error, Result},
+    function::{fun, rec},
     literal::CharExt,
-    parser::{Error, Parser, Result},
+    parser::Parser,
     utils::{any, eoi},
 };

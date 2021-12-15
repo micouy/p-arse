@@ -45,15 +45,16 @@ where
     type Output = Vec<P::Output>;
 
     fn p_arse(&self, tail: &'a str) -> Result<'a, Self::Output> {
-        let (first, mut tail) = self.parser.p_arse(tail)?;
-        let mut output = vec![first];
+        let (first, tail) = self.parser.p_arse(tail)?;
 
-        while let Ok((output_i, tail_i)) = self.parser.p_arse(tail) {
-            tail = tail_i;
-            output.push(output_i);
+        match (&self.parser).zore().p_arse(tail) {
+            Ok((mut rest, tail)) => {
+                rest.insert(0, first);
+
+                Ok((rest, tail))
+            }
+            Err(_) => Ok((vec![first], tail)),
         }
-
-        Ok((output, tail))
     }
 }
 
@@ -195,7 +196,8 @@ where
         if self.parser.p_arse(tail).is_err() {
             Ok(((), tail))
         } else {
-            Err(Error {})
+            // TODO what to do here?
+            Err(Error::expecting("negative lookahead"))
         }
     }
 }
@@ -219,7 +221,31 @@ where
         if self.parser.p_arse(tail).is_ok() {
             Ok(((), tail))
         } else {
-            Err(Error {})
+            // TODO what to do here?
+            Err(Error::expecting("positive lookahead"))
         }
+    }
+}
+
+#[derive(Clone)]
+pub struct Named<'a, P>
+where
+    P: Parser<'a>,
+{
+    pub(crate) parser: P,
+    pub(crate) marker: PhantomData<&'a ()>,
+    pub(crate) name: String,
+}
+
+impl<'a, P> Parser<'a> for Named<'a, P>
+where
+    P: Parser<'a>,
+{
+    type Output = P::Output;
+
+    fn p_arse(&self, tail: &'a str) -> Result<'a, Self::Output> {
+        self.parser
+            .p_arse(tail)
+            .map_err(|err| err.push(self.name.clone()))
     }
 }

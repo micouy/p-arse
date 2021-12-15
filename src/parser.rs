@@ -2,15 +2,7 @@
 
 use std::marker::PhantomData;
 
-use crate::wrapper::*;
-
-/// Main error.
-///
-/// For now it's only a dummy value.
-#[derive(Debug)]
-pub struct Error {}
-
-pub type Result<'a, T> = std::result::Result<(T, &'a str), Error>;
+use crate::{wrapper::*, Result};
 
 /// The main trait.
 ///
@@ -106,12 +98,12 @@ pub trait Parser<'a>: Sized + Clone {
     /// # Examples
     ///
     /// ```
-    /// use p_arse::{Parser, Result};
+    /// use p_arse::{Parser, Result, rec, function::RecursiveFunction};
     ///
-    /// // Without `.ignore()` the function would return a recursive type.
-    /// fn a_string<'a>(tail: &'a str) -> Result<'a, ()> {
+    /// // Without `.ignore()` the function would return a cyclic type of infinite size.
+    /// let a_string = rec(&|tail, a_string| {
     ///     ("a", a_string.opt()).ignore().p_arse(tail)
-    /// }
+    /// });
     /// ```
     fn ignore(self) -> Ignorant<'a, Self> {
         Ignorant {
@@ -291,5 +283,27 @@ pub trait Parser<'a>: Sized + Clone {
             parser: self,
             marker: PhantomData,
         }
+    }
+
+    fn named<S>(self, name: S) -> Named<'a, Self>
+    where
+        S: Into<String>,
+    {
+        Named {
+            parser: self,
+            marker: PhantomData,
+            name: name.into(),
+        }
+    }
+}
+
+impl<'a, P> Parser<'a> for &P
+where
+    P: Parser<'a>,
+{
+    type Output = P::Output;
+
+    fn p_arse(&self, tail: &'a str) -> Result<'a, Self::Output> {
+        (*self).p_arse(tail)
     }
 }

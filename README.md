@@ -10,7 +10,7 @@
   - [x] string slices (`"abc"`)
   - [x] chars (`'A'`)
   - [x] char ranges (`'a'.to('z')`)
-  - [ ] regex, other `Pattern`s
+  - [ ] regex, other `Pattern`s (?)
 - [x] non-terminals i.e. parser functions, including recursive functions
   ```
   fn a_string(tail: &str) -> Result<'_, ()> {
@@ -33,12 +33,13 @@
 
 **todo**
 
-- [ ] add `.and_then()` for further processing that might fail
-- [ ] clean error messages with parsing stack
-- [ ] fix impl Parser for F and for &P (conflicting)
+- [ ] add docs on capturing the environment with `rec` and `fun`.
+- [ ] add `.and_then()` (`.and()`?) for further processing that might fail
+- [ ] add error messages with parsing stack
 - [ ] make each parser return the whole string slice it has captured (its children's captures concatenated)
-- [ ] add docs
 - [ ] add a method that would parse and return only the parsed value (?)
+- [x] fix impl Parser for F and for &P (conflicting)
+- [x] add docs
 
 
 **reference**

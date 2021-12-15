@@ -1,4 +1,12 @@
-use p_arse::{Parser, Result, any};
+#![feature(box_syntax)]
+use p_arse::{
+    any,
+    fun,
+    function::{Fun, Rec},
+    rec,
+    Parser,
+    Result,
+};
 
 #[test]
 fn test_literals() {
@@ -41,18 +49,18 @@ fn test_mapping() {
     assert_eq!(digit.p_arse("1").unwrap().0, 1);
 }
 
-#[test]
-fn test_recursive_parsers() {
-    // A = "a" A?
-    fn a_string<'a>(tail: &'a str) -> Result<'a, ()> {
-        ("a", a_string.opt()).ignore().p_arse(tail)
-    }
-
-    assert!(a_string.p_arse("").is_err());
-    assert!(a_string.p_arse("a").is_ok());
-    assert!(a_string.p_arse("aa").is_ok());
-    assert!(a_string.p_arse("aaa").is_ok());
-}
+// #[test]
+// fn test_recursive_parsers() {
+// A = "a" A?
+// fn a_string<'a>(tail: &'a str) -> Result<'a, ()> {
+// ("a", a_string.opt()).ignore().p_arse(tail)
+// }
+//
+// assert!(a_string.p_arse("").is_err());
+// assert!(a_string.p_arse("a").is_ok());
+// assert!(a_string.p_arse("aa").is_ok());
+// assert!(a_string.p_arse("aaa").is_ok());
+// }
 
 #[test]
 fn test_repetition() {
@@ -78,4 +86,55 @@ fn test_lookaheads() {
     let a_not_ahead = "a".not_ahead(); // !"a"
     assert!(a_not_ahead.p_arse("bbb").is_ok());
     assert!(a_not_ahead.p_arse("aaa").is_err());
+}
+
+#[test]
+fn test_named() {
+    let x = ",,,".named("x");
+    let y = (x,).named("y");
+    let z = (y,).named("z");
+
+    assert_eq!(z.p_arse("...").unwrap_err().stack, vec!["x", "y", "z"]);
+}
+
+#[test]
+fn test_functions() {
+    // Recursive terminals.
+
+    // A = "a" A?
+    let a_string = rec(&|tail: &str, a_string| -> Result<()> {
+        ("a", a_string.opt()).ignore().p_arse(tail)
+    });
+
+    assert!(a_string.p_arse("").is_err());
+    assert!(a_string.p_arse("a").is_ok());
+    assert!(a_string.p_arse("aa").is_ok());
+    assert!(a_string.p_arse("aaa").is_ok());
+
+    // Non-recursive terminals.
+
+    // A = "a" "b" "c"
+    let abc = fun(&|tail: &str| -> Result<()> {
+        ("a", "b", "c").ignore().p_arse(tail)
+    });
+
+    assert!(abc.p_arse("abc").is_ok());
+    assert!(abc.p_arse("xxx").is_err());
+
+    // Capturing the environment.
+
+    let a = "a";
+    let b = "b";
+    let c = "c";
+    let abc: &dyn Fun<_> = &|tail| (a, b, c).ignore().p_arse(tail);
+    let abc = fun(abc);
+
+    assert!(abc.p_arse("abc").is_ok());
+
+    let just_a = "a";
+    let a_string: &dyn Rec<_> =
+        &|tail, a_string| ("a", a_string.opt()).ignore().p_arse(tail);
+    let a_string = rec(a_string);
+
+    assert!(a_string.p_arse("a").is_ok());
 }
