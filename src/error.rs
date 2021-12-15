@@ -5,7 +5,7 @@
 /// For now it's only a dummy value.
 #[derive(Debug)]
 pub struct Error {
-    pub stack: Vec<String>,
+    pub stack: Vec<&'static str>,
     pub expectation: String,
 }
 
@@ -20,7 +20,7 @@ impl Error {
         }
     }
 
-    pub(crate) fn push(mut self, name: String) -> Self {
+    pub(crate) fn push(mut self, name: &'static str) -> Self {
         self.stack.push(name);
 
         self

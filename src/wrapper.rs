@@ -106,7 +106,7 @@ where
 pub struct Map<'a, P, F, U>
 where
     P: Parser<'a>,
-    F: Fn(P::Output) -> U + Clone,
+    F: Fn(P::Output) -> U + Copy,
 {
     pub(crate) parser: P,
     pub(crate) f: F,
@@ -117,7 +117,7 @@ where
 impl<'a, P, F, U> Clone for Map<'a, P, F, U>
 where
     P: Parser<'a>,
-    F: Fn(P::Output) -> U + Clone,
+    F: Fn(P::Output) -> U + Copy,
 {
     fn clone(&self) -> Self {
         Self {
@@ -138,7 +138,7 @@ where
 
 impl<'a, P, F, U> Parser<'a> for Map<'a, P, F, U>
 where
-    F: Fn(P::Output) -> U + Clone,
+    F: Fn(P::Output) -> U + Copy,
     P: Parser<'a>,
 {
     type Output = U;
@@ -227,14 +227,14 @@ where
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 pub struct Named<'a, P>
 where
     P: Parser<'a>,
 {
     pub(crate) parser: P,
     pub(crate) marker: PhantomData<&'a ()>,
-    pub(crate) name: String,
+    pub(crate) name: &'static str,
 }
 
 impl<'a, P> Parser<'a> for Named<'a, P>
@@ -246,6 +246,6 @@ where
     fn p_arse(&self, tail: &'a str) -> Result<'a, Self::Output> {
         self.parser
             .p_arse(tail)
-            .map_err(|err| err.push(self.name.clone()))
+            .map_err(|err| err.push(self.name))
     }
 }

@@ -17,8 +17,6 @@ impl<F, T> Rec<T> for F where
 }
 
 pub struct RecursiveFunction<'f, T> {
-    // f: &'f dyn for<'a, 'b> Fn(&'a str, &RecursiveFunction<'b, T>) ->
-    // Result<'a, T>,
     f: &'f dyn Rec<T>,
     marker: PhantomData<T>,
 }
@@ -31,6 +29,8 @@ impl<'f, T> Clone for RecursiveFunction<'f, T> {
         }
     }
 }
+
+impl<'f, T> Copy for RecursiveFunction<'f, T> {}
 
 pub struct Function<'f, T> {
     // f: &'f dyn for<'a> Fn(&'a str) -> Result<'a, T>,
@@ -46,6 +46,8 @@ impl<'f, T> Clone for Function<'f, T> {
         }
     }
 }
+
+impl<'f, T> Copy for Function<'f, T> {}
 
 impl<'f, 'a, T> Parser<'a> for RecursiveFunction<'f, T> {
     type Output = T;

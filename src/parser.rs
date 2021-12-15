@@ -50,7 +50,7 @@ use crate::{wrapper::*, Result};
 ///     let higher_order_parser = 'a'.my_parser();
 /// }
 /// ```
-pub trait Parser<'a>: Sized + Clone {
+pub trait Parser<'a>: Sized + Copy {
     type Output;
 
     /// Attempts to parse the input.
@@ -80,7 +80,7 @@ pub trait Parser<'a>: Sized + Clone {
     /// ```
     fn map<F, U>(self, f: F) -> Map<'a, Self, F, U>
     where
-        F: Fn(Self::Output) -> U + Clone,
+        F: Fn(Self::Output) -> U + Copy,
     {
         Map {
             parser: self,
@@ -285,25 +285,11 @@ pub trait Parser<'a>: Sized + Clone {
         }
     }
 
-    fn named<S>(self, name: S) -> Named<'a, Self>
-    where
-        S: Into<String>,
-    {
+    fn named(self, name: &'static str) -> Named<'a, Self> {
         Named {
             parser: self,
             marker: PhantomData,
-            name: name.into(),
+            name: name,
         }
-    }
-}
-
-impl<'a, P> Parser<'a> for &P
-where
-    P: Parser<'a>,
-{
-    type Output = P::Output;
-
-    fn p_arse(&self, tail: &'a str) -> Result<'a, Self::Output> {
-        (*self).p_arse(tail)
     }
 }
