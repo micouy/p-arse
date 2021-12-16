@@ -1,7 +1,8 @@
 use p_arse::{any, eoi, CharExt, Parser};
 
 fn main() {
-    // Parsing.
+    // PARSING
+
     let parse_header = |(_, header, _): (_, Vec<(_, char)>, _)| {
         header.iter().map(|((), c)| c).collect::<String>()
     };
@@ -16,7 +17,9 @@ fn main() {
         };
     let parse_file = |(_, entries, _)| entries;
 
-    // Recognition.
+    // /PARSING
+
+    // RECOGNITION
     let nl = '\n';
 
     let header_content = (nl.not_ahead(), any()).more();
@@ -31,6 +34,8 @@ fn main() {
     let entry = (header, sequence);
 
     let file = (nl.zore(), entry.zore(), eoi()).map(parse_file);
+
+    // /RECOGNITION
 
     // `\` at the end of the line in string means 'ignore following whitespace'.
     let fasta = "\

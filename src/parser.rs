@@ -1,6 +1,6 @@
 //! The core functionality.
 
-use std::marker::PhantomData;
+use std::{convert::Infallible, marker::PhantomData};
 
 use crate::{wrapper::*, Result};
 
@@ -50,7 +50,7 @@ use crate::{wrapper::*, Result};
 ///     let higher_order_parser = 'a'.my_parser();
 /// }
 /// ```
-pub trait Parser<'a>: Sized + Copy {
+pub trait Parser<'a, E = Infallible>: Sized + Copy {
     type Output;
 
     /// Attempts to parse the input.
@@ -63,7 +63,17 @@ pub trait Parser<'a>: Sized + Copy {
     /// let just_a = 'a';
     /// let result = just_a.p_arse("abc");
     /// ```
-    fn p_arse(&self, tail: &'a str) -> Result<'a, Self::Output>;
+    fn p_arse(
+        &self,
+        tail: &'a str,
+    ) -> Result<'a, <Self as Parser<'a, E>>::Output, Infallible>
+    where
+        Self: Parser<'a, Infallible, Output = <Self as Parser<'a, E>>::Output>,
+    {
+        self.try_p_arse(tail)
+    }
+
+    fn try_p_arse(&self, tail: &'a str) -> Result<'a, Self::Output, E>;
 
     /// Maps the parser's output.
     ///
@@ -78,15 +88,25 @@ pub trait Parser<'a>: Sized + Copy {
     ///
     /// assert_eq!(digit, 1);
     /// ```
-    fn map<F, U>(self, f: F) -> Map<'a, Self, F, U>
+    fn map<F, U>(self, f: F) -> Map<'a, Self, F, U, E>
     where
         F: Fn(Self::Output) -> U + Copy,
     {
         Map {
             parser: self,
             f,
-            lifetime_marker: PhantomData,
-            u_marker: PhantomData,
+            marker: PhantomData,
+        }
+    }
+
+    fn and<F, U>(self, f: F) -> AndThen<'a, Self, F, U, E>
+    where
+        F: Fn(Self::Output) -> std::result::Result<U, E> + Copy,
+    {
+        AndThen {
+            parser: self,
+            f,
+            marker: PhantomData,
         }
     }
 
@@ -105,7 +125,7 @@ pub trait Parser<'a>: Sized + Copy {
     ///     ("a", a_string.opt()).ignore().p_arse(tail)
     /// });
     /// ```
-    fn ignore(self) -> Ignorant<'a, Self> {
+    fn ignore(self) -> Ignorant<'a, Self, E> {
         Ignorant {
             parser: self,
             marker: PhantomData,
@@ -136,9 +156,9 @@ pub trait Parser<'a>: Sized + Copy {
     /// # use p_arse::Parser;
     /// let a_or_b_or_c = 'a'.or('b').or('c');
     /// ```
-    fn or<P>(self, other: P) -> Or<'a, Self, P>
+    fn or<P>(self, other: P) -> Or<'a, Self, P, E>
     where
-        P: Parser<'a, Output = Self::Output>,
+        P: Parser<'a, E, Output = Self::Output>,
     {
         Or {
             parser_0: self,
@@ -163,7 +183,7 @@ pub trait Parser<'a>: Sized + Copy {
     /// assert!(to_be_or_not_to_be.p_arse("to be").is_ok());
     /// assert!(to_be_or_not_to_be.p_arse("definitely not 'to be'").is_ok());
     /// ```
-    fn opt(self) -> Opt<'a, Self> {
+    fn opt(self) -> Opt<'a, Self, E> {
         Opt {
             parser: self,
             marker: PhantomData,
@@ -187,7 +207,7 @@ pub trait Parser<'a>: Sized + Copy {
     /// assert!(anything.p_arse("ab").is_ok());
     /// assert!(anything.p_arse("abc").is_ok());
     /// ```
-    fn zore(self) -> ZeroOrMore<'a, Self> {
+    fn zore(self) -> ZeroOrMore<'a, Self, E> {
         ZeroOrMore {
             parser: self,
             marker: PhantomData,
@@ -211,7 +231,7 @@ pub trait Parser<'a>: Sized + Copy {
     /// assert!(bees.p_arse("bb").is_ok());
     /// assert!(bees.p_arse("bbb").is_ok());
     /// ```
-    fn more(self) -> OneOrMore<'a, Self> {
+    fn more(self) -> OneOrMore<'a, Self, E> {
         OneOrMore {
             parser: self,
             marker: PhantomData,
@@ -245,7 +265,7 @@ pub trait Parser<'a>: Sized + Copy {
     ///
     /// assert_eq!(tail, "abc");
     /// ```
-    fn not_ahead(self) -> NegativeLookahead<'a, Self> {
+    fn not_ahead(self) -> NegativeLookahead<'a, Self, E> {
         NegativeLookahead {
             parser: self,
             marker: PhantomData,
@@ -278,18 +298,18 @@ pub trait Parser<'a>: Sized + Copy {
     ///
     /// assert_eq!(tail, "abc");
     /// ```
-    fn ahead(self) -> PositiveLookahead<'a, Self> {
+    fn ahead(self) -> PositiveLookahead<'a, Self, E> {
         PositiveLookahead {
             parser: self,
             marker: PhantomData,
         }
     }
 
-    fn named(self, name: &'static str) -> Named<'a, Self> {
+    fn named(self, name: &'static str) -> Named<'a, Self, E> {
         Named {
             parser: self,
             marker: PhantomData,
-            name: name,
+            name,
         }
     }
 }

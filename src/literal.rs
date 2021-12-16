@@ -1,14 +1,19 @@
 //! String slices and characters.
 
+use std::convert::Infallible;
+
 use crate::{Error, Parser, Result};
 
-impl<'a> Parser<'a> for &str {
+impl<'a> Parser<'a, Infallible> for &str {
     type Output = &'a str;
 
-    fn p_arse(&self, tail: &'a str) -> Result<'a, Self::Output> {
+    fn try_p_arse(
+        &self,
+        tail: &'a str,
+    ) -> Result<'a, Self::Output, Infallible> {
         let stripped = tail
             .strip_prefix(self)
-            .ok_or(Error::expecting(format!("string '{}'", self)))?;
+            .ok_or_else(|| Error::expecting(format!("string '{}'", self)))?;
         let len_diff = tail.len() - stripped.len();
         let head = &tail[0..len_diff];
 
@@ -16,14 +21,17 @@ impl<'a> Parser<'a> for &str {
     }
 }
 
-impl<'a> Parser<'a> for char {
+impl<'a> Parser<'a, Infallible> for char {
     type Output = char;
 
-    fn p_arse(&self, tail: &'a str) -> Result<'a, Self::Output> {
+    fn try_p_arse(
+        &self,
+        tail: &'a str,
+    ) -> Result<'a, Self::Output, Infallible> {
         let mut chars = tail.chars();
         let first = chars
             .next()
-            .ok_or(Error::expecting(format!("char '{}'", self)))?;
+            .ok_or_else(|| Error::expecting(format!("char '{}'", self)))?;
 
         if first == *self {
             let tail = chars.as_str();
@@ -64,12 +72,17 @@ impl CharExt for char {
 impl<'a> Parser<'a> for CharRange {
     type Output = char;
 
-    fn p_arse(&self, tail: &'a str) -> Result<'a, Self::Output> {
+    fn try_p_arse(
+        &self,
+        tail: &'a str,
+    ) -> Result<'a, Self::Output, Infallible> {
         let mut chars = tail.chars();
-        let first = chars.next().ok_or(Error::expecting(format!(
-            "char from '{}' to '{}'",
-            self.from, self.to
-        )))?;
+        let first = chars.next().ok_or_else(|| {
+            Error::expecting(format!(
+                "char from '{}' to '{}'",
+                self.from, self.to
+            ))
+        })?;
 
         if (self.from..=self.to).contains(&first) {
             let tail = chars.as_str();

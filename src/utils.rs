@@ -8,12 +8,12 @@ use crate::{Error, Parser, Result};
 #[derive(Copy, Clone)]
 pub struct any();
 
-impl<'a> Parser<'a> for any {
+impl<'a, E> Parser<'a, E> for any {
     type Output = char;
 
-    fn p_arse(&self, tail: &'a str) -> Result<'a, Self::Output> {
+    fn try_p_arse(&self, tail: &'a str) -> Result<'a, Self::Output, E> {
         let mut chars = tail.chars();
-        let first = chars.next().ok_or(Error::expecting("any"))?;
+        let first = chars.next().ok_or_else(|| Error::expecting("any"))?;
         let tail = chars.as_str();
 
         Ok((first, tail))
@@ -37,10 +37,10 @@ impl<'a> Parser<'a> for any {
 #[derive(Copy, Clone)]
 pub struct eoi();
 
-impl<'a> Parser<'a> for eoi {
+impl<'a, E> Parser<'a, E> for eoi {
     type Output = ();
 
-    fn p_arse(&self, tail: &'a str) -> Result<'a, Self::Output> {
+    fn try_p_arse(&self, tail: &'a str) -> Result<'a, Self::Output, E> {
         if tail.is_empty() {
             Ok(((), tail))
         } else {

@@ -68,10 +68,10 @@
 //! ```
 
 
-pub mod function; // No exports, impls only.
 mod sequence; // No exports, impls only.
 
 pub mod error;
+pub mod function;
 pub mod literal;
 pub mod parser;
 pub mod utils;

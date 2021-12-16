@@ -1,22 +1,35 @@
 //! Error.
 
+use std::convert::Infallible;
+
 /// Main error.
-///
-/// For now it's only a dummy value.
 #[derive(Debug)]
-pub struct Error {
+pub struct Error<E = Infallible> {
     pub stack: Vec<&'static str>,
-    pub expectation: String,
+    kind: ErrorKind<E>,
 }
 
-impl Error {
+#[derive(Debug)]
+enum ErrorKind<E> {
+    UnexpectedInput(String),
+    User(E),
+}
+
+impl<E> Error<E> {
     pub(crate) fn expecting<S>(expectation: S) -> Self
     where
         S: Into<String>,
     {
         Error {
             stack: vec![],
-            expectation: expectation.into(),
+            kind: ErrorKind::UnexpectedInput(expectation.into()),
+        }
+    }
+
+    pub(crate) fn user(error: E) -> Self {
+        Error {
+            stack: vec![],
+            kind: ErrorKind::User(error),
         }
     }
 
@@ -27,4 +40,5 @@ impl Error {
     }
 }
 
-pub type Result<'a, T> = std::result::Result<(T, &'a str), Error>;
+pub type Result<'a, T, E = Infallible> =
+    std::result::Result<(T, &'a str), Error<E>>;
