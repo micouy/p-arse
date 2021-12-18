@@ -2,7 +2,7 @@
 
 //! Basic utilities.
 
-use crate::{Error, Parser, Result};
+use crate::{parser::Parser, Error, Result};
 
 /// A [`Parser`] matching any single character.
 #[derive(Copy, Clone)]
@@ -26,7 +26,7 @@ impl<'a, E> Parser<'a, E> for any {
 /// # Examples
 ///
 /// ```
-/// use p_arse::{Parser, eoi};
+/// use p_arse::{traits::*, eoi};
 ///
 /// let without_eoi = "abc".zore();
 /// assert!(without_eoi.p_arse("abcabcxxx").is_ok());

@@ -1,6 +1,6 @@
 use std::{convert::Infallible, marker::PhantomData};
 
-use crate::{Error, Parser, Result};
+use crate::{parser::Parser, Error, Result};
 
 pub struct ZeroOrMore<'a, P, E = Infallible>
 where

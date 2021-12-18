@@ -1,6 +1,6 @@
 use std::iter::FromIterator;
 
-use p_arse::{CharExt, Parser};
+use p_arse::traits::*;
 
 #[derive(Debug)]
 struct Color {

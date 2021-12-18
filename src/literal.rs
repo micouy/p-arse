@@ -1,16 +1,11 @@
 //! String slices and characters.
 
-use std::convert::Infallible;
+use crate::{parser::Parser, Error, Result};
 
-use crate::{Error, Parser, Result};
-
-impl<'a> Parser<'a, Infallible> for &str {
+impl<'a, E> Parser<'a, E> for &str {
     type Output = &'a str;
 
-    fn try_p_arse(
-        &self,
-        tail: &'a str,
-    ) -> Result<'a, Self::Output, Infallible> {
+    fn try_p_arse(&self, tail: &'a str) -> Result<'a, Self::Output, E> {
         let stripped = tail
             .strip_prefix(self)
             .ok_or_else(|| Error::expecting(format!("string '{}'", self)))?;
@@ -21,13 +16,10 @@ impl<'a> Parser<'a, Infallible> for &str {
     }
 }
 
-impl<'a> Parser<'a, Infallible> for char {
+impl<'a, E> Parser<'a, E> for char {
     type Output = char;
 
-    fn try_p_arse(
-        &self,
-        tail: &'a str,
-    ) -> Result<'a, Self::Output, Infallible> {
+    fn try_p_arse(&self, tail: &'a str) -> Result<'a, Self::Output, E> {
         let mut chars = tail.chars();
         let first = chars
             .next()
@@ -55,7 +47,7 @@ pub struct CharRange {
 /// # Examples
 ///
 /// ```
-/// use p_arse::CharExt;
+/// use p_arse::traits::*;
 ///
 /// let a_to_z = 'a'.to('z');
 /// ```
@@ -69,13 +61,10 @@ impl CharExt for char {
     }
 }
 
-impl<'a> Parser<'a> for CharRange {
+impl<'a, E> Parser<'a, E> for CharRange {
     type Output = char;
 
-    fn try_p_arse(
-        &self,
-        tail: &'a str,
-    ) -> Result<'a, Self::Output, Infallible> {
+    fn try_p_arse(&self, tail: &'a str) -> Result<'a, Self::Output, E> {
         let mut chars = tail.chars();
         let first = chars.next().ok_or_else(|| {
             Error::expecting(format!(

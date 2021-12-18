@@ -1,4 +1,4 @@
-use p_arse::{any, eoi, CharExt, Parser};
+use p_arse::{any, eoi, traits::*};
 
 fn main() {
     // PARSING

@@ -2,7 +2,7 @@
 
 //! Sequences of up to 6 elements.
 
-use crate::{Parser, Result};
+use crate::{parser::Parser, Result};
 
 impl<'a, P0, E> Parser<'a, E> for (P0,)
 where

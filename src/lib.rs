@@ -20,7 +20,7 @@
 //! [FASTA](https://en.wikipedia.org/wiki/FASTA_format) parser:
 //!
 //! ```
-//! use p_arse::{Parser, any, eoi, CharExt};
+//! use p_arse::{traits::*, any, eoi};
 //!
 //! let nl = '\n';
 //!
@@ -77,10 +77,16 @@ pub mod parser;
 pub mod utils;
 pub mod wrapper;
 
+pub mod traits {
+    pub use crate::{
+        function::{Fun},
+        literal::CharExt,
+        parser::{InfallibleParser, Parser},
+    };
+}
+
 pub use crate::{
     error::{Error, Result},
     function::{fun, rec},
-    literal::CharExt,
-    parser::Parser,
     utils::{any, eoi},
 };

@@ -4,6 +4,7 @@ use std::{convert::Infallible, marker::PhantomData};
 
 use crate::{wrapper::*, Result};
 
+#[allow(clippy::needless_doctest_main)]
 /// The main trait.
 ///
 /// A [`Parser`] may be:
@@ -29,9 +30,9 @@ use crate::{wrapper::*, Result};
 /// consistency of syntax and readability.
 ///
 /// ```
-/// use p_arse::Parser;
-///
 /// use std::marker::PhantomData;
+///
+/// use p_arse::traits::*;
 ///
 /// struct MyParser<'a, P> where P: Parser<'a> {
 ///     parser: P,
@@ -58,21 +59,13 @@ pub trait Parser<'a, E = Infallible>: Sized + Copy {
     /// # Examples
     ///
     /// ```
-    /// use p_arse::{Parser, any};
+    /// use std::convert::Infallible;
+    ///
+    /// use p_arse::{traits::*, any};
     ///
     /// let just_a = 'a';
-    /// let result = just_a.p_arse("abc");
+    /// let result = Parser::<Infallible>::try_p_arse(&just_a, "abc");
     /// ```
-    fn p_arse(
-        &self,
-        tail: &'a str,
-    ) -> Result<'a, <Self as Parser<'a, E>>::Output, Infallible>
-    where
-        Self: Parser<'a, Infallible, Output = <Self as Parser<'a, E>>::Output>,
-    {
-        self.try_p_arse(tail)
-    }
-
     fn try_p_arse(&self, tail: &'a str) -> Result<'a, Self::Output, E>;
 
     /// Maps the parser's output.
@@ -80,7 +73,7 @@ pub trait Parser<'a, E = Infallible>: Sized + Copy {
     /// # Examples
     ///
     /// ```
-    /// use p_arse::{Parser, any};
+    /// use p_arse::{traits::*, any};
     ///
     /// let parse_digit = |d: char| d.to_digit(10).unwrap();
     /// let digit = any().map(parse_digit);
@@ -118,7 +111,7 @@ pub trait Parser<'a, E = Infallible>: Sized + Copy {
     /// # Examples
     ///
     /// ```
-    /// use p_arse::{Parser, Result, rec, function::RecursiveFunction};
+    /// use p_arse::{traits::*, Result, rec};
     ///
     /// // Without `.ignore()` the function would return a cyclic type of infinite size.
     /// let a_string = rec(&|tail, a_string| {
@@ -141,7 +134,7 @@ pub trait Parser<'a, E = Infallible>: Sized + Copy {
     /// # Examples
     ///
     /// ```
-    /// use p_arse::Parser;
+    /// use p_arse::traits::*;
     ///
     /// let a_or_b = 'a'.or('b');
     ///
@@ -153,8 +146,9 @@ pub trait Parser<'a, E = Infallible>: Sized + Copy {
     /// `.or()` can be chained.
     ///
     /// ```
-    /// # use p_arse::Parser;
+    /// # use p_arse::traits::*;
     /// let a_or_b_or_c = 'a'.or('b').or('c');
+    /// # let _ = a_or_b_or_c.p_arse("this line makes the compiler happy");
     /// ```
     fn or<P>(self, other: P) -> Or<'a, Self, P, E>
     where
@@ -176,7 +170,7 @@ pub trait Parser<'a, E = Infallible>: Sized + Copy {
     /// # Examples
     ///
     /// ```
-    /// use p_arse::Parser;
+    /// use p_arse::traits::*;
     ///
     /// let to_be_or_not_to_be = "to be".opt();
     ///
@@ -198,7 +192,7 @@ pub trait Parser<'a, E = Infallible>: Sized + Copy {
     /// # Examples
     ///
     /// ```
-    /// use p_arse::{Parser, any};
+    /// use p_arse::{traits::*, any};
     ///
     /// let anything = any().zore();
     ///
@@ -222,7 +216,7 @@ pub trait Parser<'a, E = Infallible>: Sized + Copy {
     /// # Examples
     ///
     /// ```
-    /// use p_arse::Parser;
+    /// use p_arse::traits::*;
     ///
     /// let bees = 'b'.more();
     ///
@@ -247,7 +241,7 @@ pub trait Parser<'a, E = Infallible>: Sized + Copy {
     /// # Examples
     ///
     /// ```
-    /// use p_arse::Parser;
+    /// use p_arse::traits::*;
     ///
     /// let does_not_begin_with_a = 'a'.not_ahead();
     ///
@@ -258,7 +252,7 @@ pub trait Parser<'a, E = Infallible>: Sized + Copy {
     /// The input is not consumed.
     ///
     /// ```
-    /// use p_arse::Parser;
+    /// use p_arse::traits::*;
     ///
     /// let does_not_consume = 'x'.not_ahead();
     /// let ((), tail) = does_not_consume.p_arse("abc").unwrap();
@@ -280,7 +274,7 @@ pub trait Parser<'a, E = Infallible>: Sized + Copy {
     /// # Examples
     ///
     /// ```
-    /// use p_arse::Parser;
+    /// use p_arse::traits::*;
     ///
     /// let begins_with_a = 'a'.ahead();
     ///
@@ -291,7 +285,7 @@ pub trait Parser<'a, E = Infallible>: Sized + Copy {
     /// The input is not consumed.
     ///
     /// ```
-    /// use p_arse::Parser;
+    /// use p_arse::traits::*;
     ///
     /// let does_not_consume = 'a'.ahead();
     /// let ((), tail) = does_not_consume.p_arse("abc").unwrap();
@@ -313,3 +307,21 @@ pub trait Parser<'a, E = Infallible>: Sized + Copy {
         }
     }
 }
+
+pub trait InfallibleParser<'a>: Parser<'a, Infallible> {
+    /// Attempts to parse the input.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use p_arse::{traits::*, any};
+    ///
+    /// let just_a = 'a';
+    /// let result = just_a.p_arse("abc");
+    /// ```
+    fn p_arse(&self, tail: &'a str) -> Result<'a, Self::Output, Infallible> {
+        self.try_p_arse(tail)
+    }
+}
+
+impl<'a, P> InfallibleParser<'a> for P where P: Parser<'a, Infallible> {}
