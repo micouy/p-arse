@@ -1,6 +1,6 @@
 use std::iter::FromIterator;
 
-use p_arse::traits::*;
+use p_arse::{CharExt, Parser};
 
 fn main() {
     let print_letter = |letter| {

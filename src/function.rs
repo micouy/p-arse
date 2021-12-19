@@ -1,84 +1,71 @@
 //! Implementation of [`Parser`] for functions.
 
-use std::{convert::Infallible, marker::PhantomData};
+use crate::{Parser, Result};
 
-use crate::{traits::Parser, Result};
+pub trait Fun<T>: for<'a> Fn(&'a str) -> Result<'a, T> {}
 
-pub trait Fun<T, E = Infallible>:
-    for<'a> Fn(&'a str) -> Result<'a, T, E>
-{
+impl<F, T> Fun<T> for F where F: for<'a> Fn(&'a str) -> Result<'a, T> {}
+pub struct Function<'f, T> {
+    f: &'f dyn Fun<T>,
 }
 
-impl<F, T, E> Fun<T, E> for F where F: for<'a> Fn(&'a str) -> Result<'a, T, E> {}
-pub struct Function<'f, T, E = Infallible> {
-    f: &'f dyn Fun<T, E>,
-    marker: PhantomData<(T, E)>,
-}
-
-impl<'f, T, E> Clone for Function<'f, T, E> {
+impl<'f, T> Clone for Function<'f, T> {
     fn clone(&self) -> Self {
-        Self {
-            f: self.f,
-            marker: PhantomData,
-        }
+        Self { f: self.f }
     }
 }
 
-impl<'f, T, E> Copy for Function<'f, T, E> {}
+impl<'f, T> Copy for Function<'f, T> {}
 
-impl<'f, 'a, T, E> Parser<'a, E> for Function<'f, T, E> {
+impl<'f, T> Parser for Function<'f, T> {
     type Output = T;
 
-    fn try_p_arse(&self, tail: &'a str) -> Result<'a, Self::Output, E> {
+    fn p_arse<'a>(&self, tail: &'a str) -> Result<'a, Self::Output> {
         (self.f)(tail)
     }
 }
 
-pub fn fun<T, E>(f: &dyn Fun<T, E>) -> Function<'_, T, E> {
-    Function {
-        f,
-        marker: PhantomData,
-    }
+pub fn fun<T>(f: &dyn Fun<T>) -> Function<'_, T> {
+    Function { f }
 }
 
-/*
-pub trait Rec<'a, 'f, T, E = Infallible>:
-    Fn(&'a str, RecursiveFunction<'a, 'f, T, E>) -> Result<'a, T, E>
+pub trait Rec<T>:
+    for<'a> Fn(&'a str, RecursiveFunction<'_, T>) -> Result<'a, T>
 {
 }
-impl<'a, 'f, F, T, E> Rec<'a, 'f, T, E> for F where
-    F: Fn(&'a str, RecursiveFunction<'a, 'f, T, E>) -> Result<'a, T, E>
+
+impl<F, T> Rec<T> for F where
+    F: for<'a> Fn(&'a str, RecursiveFunction<'_, T>) -> Result<'a, T>
 {
 }
-*/
 
-pub struct RecursiveFunction<'a, 'f, T, E = Infallible> {
-    f: &'f dyn Fn(&'a str, RecursiveFunction<'a, 'f, T, E>) -> Result<'a, T, E>,
-    marker: PhantomData<(T, E)>,
+// pub struct RecursiveFunction<'a, 'f, T> {
+pub struct RecursiveFunction<'f, T> {
+    // f: &'f dyn Fn(&'a str, RecursiveFunction<'a, 'f, T>) -> Result<'a, T>,
+    f: &'f dyn Rec<T>,
 }
 
-impl<'a, 'f, T, E> Clone for RecursiveFunction<'a, 'f, T, E> {
+// impl<'a, 'f, T> Clone for RecursiveFunction<'a, 'f, T> {
+impl<'f, T> Clone for RecursiveFunction<'f, T> {
     fn clone(&self) -> Self {
-        Self {
-            f: self.f,
-            marker: PhantomData,
-        }
+        Self { f: self.f }
     }
 }
 
-impl<'a, 'f, T, E> Copy for RecursiveFunction<'a, 'f, T, E> {}
+// impl<'a, 'f, T> Copy for RecursiveFunction<'a, 'f, T> {}
+impl<'f, T> Copy for RecursiveFunction<'f, T> {}
 
-impl<'a, 'f, T, E> Parser<'a, E> for RecursiveFunction<'a, 'f, T, E> {
+// impl<'a, 'f, T> Parser<'a> for RecursiveFunction<'a, 'f, T> {
+impl<'f, T> Parser for RecursiveFunction<'f, T> {
     type Output = T;
 
-    fn try_p_arse(&self, tail: &'a str) -> Result<'a, Self::Output, E> {
+    fn p_arse<'a>(&self, tail: &'a str) -> Result<'a, Self::Output> {
         (self.f)(tail, *self)
     }
 }
 
-pub fn rec<'a, 'f, T, E>(f: &'f dyn Fn(&'a str, RecursiveFunction<'a, 'f, T, E>) -> Result<'a, T, E>) -> RecursiveFunction<'a, 'f, T, E> {
-    RecursiveFunction {
-        f,
-        marker: PhantomData,
-    }
+// pub fn rec<'a, 'f, T>(f: &'f dyn Fn(&'a str, RecursiveFunction<'a, 'f, T>) ->
+// Result<'a, T>) -> RecursiveFunction<'a, 'f, T> {
+pub fn rec<'f, T>(f: &'f dyn Rec<T>) -> RecursiveFunction<'f, T> {
+    RecursiveFunction { f }
 }

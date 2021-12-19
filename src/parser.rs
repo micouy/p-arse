@@ -1,6 +1,6 @@
 //! The core functionality.
 
-use std::{convert::Infallible, marker::PhantomData};
+use std::marker::PhantomData;
 
 use crate::{wrapper::*, Result};
 
@@ -11,47 +11,14 @@ use crate::{wrapper::*, Result};
 /// - a [`char`], a [`CharRange`](crate::literal::CharRange) constructed using
 ///   [`'a'.to('z')`](crate::CharExt::to), or a [`&str`], all corresponding to
 ///   terminals (or sequences of terminals) in PEG,
-/// - a (possibly recurisve) function from [`&str`] to
+/// - a (possibly recursive) function from [`&str`] to
 ///   [`p_arse::Result`](crate::Result), corresponding to non-terminals in PEG,
 /// - a tuple of up to 6 [`Parser`]s, corresponding to a sequence in PEG,
 /// - any parser constructed using one of the [`Parser`]'s methods,
 ///   corresponding to various operators in PEG,
 /// - [`any()`](crate::any), matching any character,
 /// - [`eoi()`](crate::eoi), matching the end of input.
-///
-/// # Notes on designing new higher order parsers
-///
-/// The set of higher order parsers (constructed using [`Parser`]'s methods)
-/// is not meant to be extended by the user. The provided methods aim to be
-/// general enough to suffice in most cases. However, if the user wishes
-/// to do it anyways, it is advised to define a new `ParserExt<'a>` trait and
-/// implement it for all `P: Parser<'a>`. The choice of using methods over
-/// functions in `p-arse` was deliberate and this solution ensures the
-/// consistency of syntax and readability.
-///
-/// ```
-/// use std::marker::PhantomData;
-///
-/// use p_arse::traits::*;
-///
-/// struct MyParser<'a, P> where P: Parser<'a> {
-///     parser: P,
-///     marker: PhantomData<&'a ()>,
-/// }
-///
-/// trait ParserExt<'a>: Parser<'a> {
-///     fn my_parser(self) -> MyParser<'a, Self> {
-///         MyParser { parser: self, marker: PhantomData }
-///     }
-/// }
-///
-/// impl<'a, P> ParserExt<'a> for P where P: Parser<'a> {}
-///
-/// fn main() {
-///     let higher_order_parser = 'a'.my_parser();
-/// }
-/// ```
-pub trait Parser<'a, E = Infallible>: Sized + Copy {
+pub trait Parser: Sized + Copy {
     type Output;
 
     /// Attempts to parse the input.
@@ -59,21 +26,19 @@ pub trait Parser<'a, E = Infallible>: Sized + Copy {
     /// # Examples
     ///
     /// ```
-    /// use std::convert::Infallible;
-    ///
-    /// use p_arse::{traits::*, any};
+    /// use p_arse::{Parser, any};
     ///
     /// let just_a = 'a';
-    /// let result = Parser::<Infallible>::try_p_arse(&just_a, "abc");
+    /// let result = just_a.p_arse("abc");
     /// ```
-    fn try_p_arse(&self, tail: &'a str) -> Result<'a, Self::Output, E>;
+    fn p_arse<'a>(&self, tail: &'a str) -> Result<'a, Self::Output>;
 
     /// Maps the parser's output.
     ///
     /// # Examples
     ///
     /// ```
-    /// use p_arse::{traits::*, any};
+    /// use p_arse::{Parser, any};
     ///
     /// let parse_digit = |d: char| d.to_digit(10).unwrap();
     /// let digit = any().map(parse_digit);
@@ -81,25 +46,14 @@ pub trait Parser<'a, E = Infallible>: Sized + Copy {
     ///
     /// assert_eq!(digit, 1);
     /// ```
-    fn map<F, U>(self, f: F) -> Map<'a, Self, F, U, E>
+    fn map<F, U>(self, f: F) -> Map<Self, F, U>
     where
         F: Fn(Self::Output) -> U + Copy,
     {
         Map {
             parser: self,
-            f,
             marker: PhantomData,
-        }
-    }
-
-    fn and<F, U>(self, f: F) -> AndThen<'a, Self, F, U, E>
-    where
-        F: Fn(Self::Output) -> std::result::Result<U, E> + Copy,
-    {
-        AndThen {
-            parser: self,
             f,
-            marker: PhantomData,
         }
     }
 
@@ -111,18 +65,15 @@ pub trait Parser<'a, E = Infallible>: Sized + Copy {
     /// # Examples
     ///
     /// ```
-    /// use p_arse::{traits::*, Result, rec};
+    /// use p_arse::{Parser, Result, rec};
     ///
     /// // Without `.ignore()` the function would return a cyclic type of infinite size.
     /// let a_string = rec(&|tail, a_string| {
     ///     ("a", a_string.opt()).ignore().p_arse(tail)
     /// });
     /// ```
-    fn ignore(self) -> Ignorant<'a, Self, E> {
-        Ignorant {
-            parser: self,
-            marker: PhantomData,
-        }
+    fn ignore(self) -> Ignorant<Self> {
+        Ignorant { parser: self }
     }
 
     /// Returns an alternative of the two parsers.
@@ -134,7 +85,7 @@ pub trait Parser<'a, E = Infallible>: Sized + Copy {
     /// # Examples
     ///
     /// ```
-    /// use p_arse::traits::*;
+    /// use p_arse::Parser;
     ///
     /// let a_or_b = 'a'.or('b');
     ///
@@ -146,18 +97,17 @@ pub trait Parser<'a, E = Infallible>: Sized + Copy {
     /// `.or()` can be chained.
     ///
     /// ```
-    /// # use p_arse::traits::*;
+    /// # use p_arse::Parser;
     /// let a_or_b_or_c = 'a'.or('b').or('c');
     /// # let _ = a_or_b_or_c.p_arse("this line makes the compiler happy");
     /// ```
-    fn or<P>(self, other: P) -> Or<'a, Self, P, E>
+    fn or<P>(self, other: P) -> Or<Self, P>
     where
-        P: Parser<'a, E, Output = Self::Output>,
+        P: Parser<Output = Self::Output>,
     {
         Or {
             parser_0: self,
             parser_1: other,
-            marker: PhantomData,
         }
     }
 
@@ -170,18 +120,15 @@ pub trait Parser<'a, E = Infallible>: Sized + Copy {
     /// # Examples
     ///
     /// ```
-    /// use p_arse::traits::*;
+    /// use p_arse::Parser;
     ///
     /// let to_be_or_not_to_be = "to be".opt();
     ///
     /// assert!(to_be_or_not_to_be.p_arse("to be").is_ok());
     /// assert!(to_be_or_not_to_be.p_arse("definitely not 'to be'").is_ok());
     /// ```
-    fn opt(self) -> Opt<'a, Self, E> {
-        Opt {
-            parser: self,
-            marker: PhantomData,
-        }
+    fn opt(self) -> Opt<Self> {
+        Opt { parser: self }
     }
 
     /// Makes the parser match **z**ero or m**ore** times.
@@ -192,7 +139,7 @@ pub trait Parser<'a, E = Infallible>: Sized + Copy {
     /// # Examples
     ///
     /// ```
-    /// use p_arse::{traits::*, any};
+    /// use p_arse::{Parser, any};
     ///
     /// let anything = any().zore();
     ///
@@ -201,11 +148,8 @@ pub trait Parser<'a, E = Infallible>: Sized + Copy {
     /// assert!(anything.p_arse("ab").is_ok());
     /// assert!(anything.p_arse("abc").is_ok());
     /// ```
-    fn zore(self) -> ZeroOrMore<'a, Self, E> {
-        ZeroOrMore {
-            parser: self,
-            marker: PhantomData,
-        }
+    fn zore(self) -> ZeroOrMore<Self> {
+        ZeroOrMore { parser: self }
     }
 
     /// Makes the parser match one or more times.
@@ -216,7 +160,7 @@ pub trait Parser<'a, E = Infallible>: Sized + Copy {
     /// # Examples
     ///
     /// ```
-    /// use p_arse::traits::*;
+    /// use p_arse::Parser;
     ///
     /// let bees = 'b'.more();
     ///
@@ -225,11 +169,8 @@ pub trait Parser<'a, E = Infallible>: Sized + Copy {
     /// assert!(bees.p_arse("bb").is_ok());
     /// assert!(bees.p_arse("bbb").is_ok());
     /// ```
-    fn more(self) -> OneOrMore<'a, Self, E> {
-        OneOrMore {
-            parser: self,
-            marker: PhantomData,
-        }
+    fn more(self) -> OneOrMore<Self> {
+        OneOrMore { parser: self }
     }
 
     /// Turns the parser into a negative look-ahead.
@@ -241,7 +182,7 @@ pub trait Parser<'a, E = Infallible>: Sized + Copy {
     /// # Examples
     ///
     /// ```
-    /// use p_arse::traits::*;
+    /// use p_arse::Parser;
     ///
     /// let does_not_begin_with_a = 'a'.not_ahead();
     ///
@@ -252,18 +193,15 @@ pub trait Parser<'a, E = Infallible>: Sized + Copy {
     /// The input is not consumed.
     ///
     /// ```
-    /// use p_arse::traits::*;
+    /// use p_arse::Parser;
     ///
     /// let does_not_consume = 'x'.not_ahead();
     /// let ((), tail) = does_not_consume.p_arse("abc").unwrap();
     ///
     /// assert_eq!(tail, "abc");
     /// ```
-    fn not_ahead(self) -> NegativeLookahead<'a, Self, E> {
-        NegativeLookahead {
-            parser: self,
-            marker: PhantomData,
-        }
+    fn not_ahead(self) -> NegativeLookahead<Self> {
+        NegativeLookahead { parser: self }
     }
 
     /// Turns the parser into a positive look-ahead.
@@ -274,7 +212,7 @@ pub trait Parser<'a, E = Infallible>: Sized + Copy {
     /// # Examples
     ///
     /// ```
-    /// use p_arse::traits::*;
+    /// use p_arse::Parser;
     ///
     /// let begins_with_a = 'a'.ahead();
     ///
@@ -285,43 +223,18 @@ pub trait Parser<'a, E = Infallible>: Sized + Copy {
     /// The input is not consumed.
     ///
     /// ```
-    /// use p_arse::traits::*;
+    /// use p_arse::Parser;
     ///
     /// let does_not_consume = 'a'.ahead();
     /// let ((), tail) = does_not_consume.p_arse("abc").unwrap();
     ///
     /// assert_eq!(tail, "abc");
     /// ```
-    fn ahead(self) -> PositiveLookahead<'a, Self, E> {
-        PositiveLookahead {
-            parser: self,
-            marker: PhantomData,
-        }
+    fn ahead(self) -> PositiveLookahead<Self> {
+        PositiveLookahead { parser: self }
     }
 
-    fn named(self, name: &'static str) -> Named<'a, Self, E> {
-        Named {
-            parser: self,
-            marker: PhantomData,
-            name,
-        }
+    fn named(self, name: &'static str) -> Named<Self> {
+        Named { parser: self, name }
     }
 }
-
-pub trait InfallibleParser<'a>: Parser<'a, Infallible> {
-    /// Attempts to parse the input.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// use p_arse::{traits::*, any};
-    ///
-    /// let just_a = 'a';
-    /// let result = just_a.p_arse("abc");
-    /// ```
-    fn p_arse(&self, tail: &'a str) -> Result<'a, Self::Output, Infallible> {
-        self.try_p_arse(tail)
-    }
-}
-
-impl<'a, P> InfallibleParser<'a> for P where P: Parser<'a, Infallible> {}

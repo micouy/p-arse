@@ -1,5 +1,14 @@
 #![feature(box_syntax)]
-use p_arse::{any, fun, rec, traits::*};
+use p_arse::{
+    any,
+    fun,
+    function::{Rec, RecursiveFunction},
+    rec,
+    CharExt,
+    Fun,
+    Parser,
+    Result,
+};
 
 #[test]
 fn test_any() {
@@ -88,9 +97,8 @@ fn test_functions() {
     // Recursive terminals.
 
     // A = "a" A?
-    let a_string = rec(&|a_string| {
-        ("a", a_string.opt()).ignore()
-    });
+    let a_string =
+        rec(&|tail, a_string| ("a", a_string.opt()).ignore().p_arse(tail));
 
     assert!(a_string.p_arse("").is_err());
     assert!(a_string.p_arse("a").is_ok());
@@ -110,34 +118,15 @@ fn test_functions() {
     let a = "a";
     let b = "b";
     let c = "c";
-    let abc: &dyn Fun<_, _> = &|tail| (a, b, c).ignore().p_arse(tail);
+    let abc: &dyn Fun<_> = &|tail| (a, b, c).ignore().p_arse(tail);
     let abc = fun(abc);
 
     assert!(abc.p_arse("abc").is_ok());
 
     let just_a = "a";
-    let a_string: &dyn Rec<_, _> =
-        &|a_string| (just_a, a_string.opt()).ignore();
-    let a_string = rec(a_string);
+    let a_string: &dyn Rec<_> =
+        &|tail, a_string| (just_a, a_string.opt()).ignore().p_arse(tail);
+    let a_string = rec(&a_string);
 
     assert!(a_string.p_arse("a").is_ok());
-}
-
-#[test]
-fn test_fallible() {
-    use std::iter::FromIterator;
-
-    let parse_digit = |c: char| c.to_string().parse::<i32>();
-    let digit = any().and(parse_digit);
-
-    assert_eq!(digit.try_p_arse("1").unwrap().0, 1);
-    assert!(digit.try_p_arse("a").is_err());
-
-    let parse_double_digit =
-        |(c1, c2)| String::from_iter([c1, c2]).parse::<i32>();
-    let digit = '0'.to('9');
-    let double_digit = (digit, digit).and(parse_double_digit);
-
-    assert_eq!(double_digit.try_p_arse("11").unwrap().0, 11);
-    assert!(double_digit.try_p_arse("aa").is_err());
 }

@@ -8,10 +8,10 @@ use crate::{parser::Parser, Error, Result};
 #[derive(Copy, Clone)]
 pub struct any();
 
-impl<'a, E> Parser<'a, E> for any {
+impl Parser for any {
     type Output = char;
 
-    fn try_p_arse(&self, tail: &'a str) -> Result<'a, Self::Output, E> {
+    fn p_arse<'a>(&self, tail: &'a str) -> Result<'a, Self::Output> {
         let mut chars = tail.chars();
         let first = chars.next().ok_or_else(|| Error::expecting("any"))?;
         let tail = chars.as_str();
@@ -26,7 +26,7 @@ impl<'a, E> Parser<'a, E> for any {
 /// # Examples
 ///
 /// ```
-/// use p_arse::{traits::*, eoi};
+/// use p_arse::{Parser, eoi};
 ///
 /// let without_eoi = "abc".zore();
 /// assert!(without_eoi.p_arse("abcabcxxx").is_ok());
@@ -37,10 +37,10 @@ impl<'a, E> Parser<'a, E> for any {
 #[derive(Copy, Clone)]
 pub struct eoi();
 
-impl<'a, E> Parser<'a, E> for eoi {
+impl Parser for eoi {
     type Output = ();
 
-    fn try_p_arse(&self, tail: &'a str) -> Result<'a, Self::Output, E> {
+    fn p_arse<'a>(&self, tail: &'a str) -> Result<'a, Self::Output> {
         if tail.is_empty() {
             Ok(((), tail))
         } else {

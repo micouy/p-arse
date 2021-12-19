@@ -1,25 +1,23 @@
 //! String slices and characters.
 
-use crate::{parser::Parser, Error, Result};
+use crate::{Error, Parser, Result};
 
-impl<'a, E> Parser<'a, E> for &str {
-    type Output = &'a str;
+impl<'b> Parser for &'b str {
+    type Output = &'b str;
 
-    fn try_p_arse(&self, tail: &'a str) -> Result<'a, Self::Output, E> {
+    fn p_arse<'a>(&self, tail: &'a str) -> Result<'a, Self::Output> {
         let stripped = tail
             .strip_prefix(self)
             .ok_or_else(|| Error::expecting(format!("string '{}'", self)))?;
-        let len_diff = tail.len() - stripped.len();
-        let head = &tail[0..len_diff];
 
-        Ok((head, stripped))
+        Ok((self, stripped))
     }
 }
 
-impl<'a, E> Parser<'a, E> for char {
+impl Parser for char {
     type Output = char;
 
-    fn try_p_arse(&self, tail: &'a str) -> Result<'a, Self::Output, E> {
+    fn p_arse<'a>(&self, tail: &'a str) -> Result<'a, Self::Output> {
         let mut chars = tail.chars();
         let first = chars
             .next()
@@ -47,7 +45,7 @@ pub struct CharRange {
 /// # Examples
 ///
 /// ```
-/// use p_arse::traits::*;
+/// use p_arse::CharExt;
 ///
 /// let a_to_z = 'a'.to('z');
 /// ```
@@ -61,10 +59,10 @@ impl CharExt for char {
     }
 }
 
-impl<'a, E> Parser<'a, E> for CharRange {
+impl Parser for CharRange {
     type Output = char;
 
-    fn try_p_arse(&self, tail: &'a str) -> Result<'a, Self::Output, E> {
+    fn p_arse<'a>(&self, tail: &'a str) -> Result<'a, Self::Output> {
         let mut chars = tail.chars();
         let first = chars.next().ok_or_else(|| {
             Error::expecting(format!(
