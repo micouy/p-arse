@@ -39,23 +39,18 @@ impl<F, T> Rec<T> for F where
 {
 }
 
-// pub struct RecursiveFunction<'a, 'f, T> {
 pub struct RecursiveFunction<'f, T> {
-    // f: &'f dyn Fn(&'a str, RecursiveFunction<'a, 'f, T>) -> Result<'a, T>,
     f: &'f dyn Rec<T>,
 }
 
-// impl<'a, 'f, T> Clone for RecursiveFunction<'a, 'f, T> {
 impl<'f, T> Clone for RecursiveFunction<'f, T> {
     fn clone(&self) -> Self {
         Self { f: self.f }
     }
 }
 
-// impl<'a, 'f, T> Copy for RecursiveFunction<'a, 'f, T> {}
 impl<'f, T> Copy for RecursiveFunction<'f, T> {}
 
-// impl<'a, 'f, T> Parser<'a> for RecursiveFunction<'a, 'f, T> {
 impl<'f, T> Parser for RecursiveFunction<'f, T> {
     type Output = T;
 
@@ -64,8 +59,6 @@ impl<'f, T> Parser for RecursiveFunction<'f, T> {
     }
 }
 
-// pub fn rec<'a, 'f, T>(f: &'f dyn Fn(&'a str, RecursiveFunction<'a, 'f, T>) ->
-// Result<'a, T>) -> RecursiveFunction<'a, 'f, T> {
 pub fn rec<'f, T>(f: &'f dyn Rec<T>) -> RecursiveFunction<'f, T> {
-    RecursiveFunction { f }
+    RecursiveFunction { f: f as &dyn Rec<_> }
 }
