@@ -340,3 +340,98 @@ where
         self.parser.p_arse(tail).map_err(|err| err.push(self.name))
     }
 }
+
+pub struct TurnInto<'t, P, T>
+where
+    P: Parser,
+    T: Clone,
+{
+    pub(crate) parser: P,
+    pub(crate) value: &'t T,
+}
+
+impl<'t, P, T> Clone for TurnInto<'t, P, T>
+where
+    P: Parser,
+    T: Clone,
+{
+    fn clone(&self) -> Self {
+        Self {
+            parser: self.parser,
+            value: self.value,
+        }
+    }
+}
+
+impl<'t, P, T> Copy for TurnInto<'t, P, T>
+where
+    P: Parser,
+    T: Clone,
+{
+}
+
+
+impl<'t, P, T> Parser for TurnInto<'t, P, T>
+where
+    P: Parser,
+    T: Clone,
+{
+    type Output = T;
+
+    fn p_arse<'a>(&self, tail: &'a str) -> Result<'a, Self::Output> {
+        self.parser
+            .p_arse(tail)
+            .map(|(_, tail)| (self.value.clone(), tail))
+    }
+}
+
+pub struct MapStr<P, F, T>
+where
+    P: Parser,
+    F: Fn(&str) -> T + Copy,
+{
+    pub(crate) parser: P,
+    pub(crate) f: F,
+}
+
+impl<P, F, T> Clone for MapStr<P, F, T>
+where
+    P: Parser,
+    F: Fn(&str) -> T + Copy,
+{
+    fn clone(&self) -> Self {
+        Self {
+            parser: self.parser,
+            f: self.f,
+        }
+    }
+}
+
+impl<P, F, T> Copy for MapStr<P, F, T>
+where
+    P: Parser,
+    F: Fn(&str) -> T + Copy,
+{
+}
+
+
+impl<P, F, T> Parser for MapStr<P, F, T>
+where
+    P: Parser,
+    F: Fn(&str) -> T + Copy,
+{
+    type Output = T;
+
+    fn p_arse<'a>(&self, tail: &'a str) -> Result<'a, Self::Output> {
+        match self.parser.p_arse(tail) {
+            Ok((_, new_tail)) => {
+                let len_diff = tail.len() - new_tail.len();
+                let captured = &tail[0..len_diff];
+                let value = (self.f)(captured);
+
+                Ok((value, new_tail))
+            }
+            Err(err) => Err(err),
+        }
+    }
+}

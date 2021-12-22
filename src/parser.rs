@@ -237,4 +237,21 @@ pub trait Parser: Sized + Copy {
     fn named(self, name: &'static str) -> Named<Self> {
         Named { parser: self, name }
     }
+
+    fn turn<'t, T>(self, value: &'t T) -> TurnInto<'t, Self, T>
+    where
+        T: Clone,
+    {
+        TurnInto {
+            parser: self,
+            value,
+        }
+    }
+
+    fn maps<F, T>(self, f: F) -> MapStr<Self, F, T>
+    where
+        F: Fn(&str) -> T + Copy,
+    {
+        MapStr { parser: self, f }
+    }
 }
