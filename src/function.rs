@@ -59,6 +59,8 @@ impl<'f, T> Parser for RecursiveFunction<'f, T> {
     }
 }
 
-pub fn rec<'f, T>(f: &'f dyn Rec<T>) -> RecursiveFunction<'f, T> {
-    RecursiveFunction { f: f as &dyn Rec<_> }
+pub fn rec<T>(f: &'_ dyn Rec<T>) -> RecursiveFunction<'_, T> {
+    RecursiveFunction {
+        f: f as &dyn Rec<_>,
+    }
 }
