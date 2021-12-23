@@ -6,9 +6,9 @@ impl<'b> Parser for &'b str {
     type Output = &'b str;
 
     fn p_arse<'a>(&self, tail: &'a str) -> Result<'a, Self::Output> {
-        let stripped = tail
-            .strip_prefix(self)
-            .ok_or_else(|| Error::expecting(format!("string '{}'", self)))?;
+        let stripped = tail.strip_prefix(self).ok_or_else(|| {
+            Error::expecting(format!("string '{}'", self), tail)
+        })?;
 
         Ok((self, stripped))
     }
@@ -19,16 +19,16 @@ impl Parser for char {
 
     fn p_arse<'a>(&self, tail: &'a str) -> Result<'a, Self::Output> {
         let mut chars = tail.chars();
-        let first = chars
-            .next()
-            .ok_or_else(|| Error::expecting(format!("char '{}'", self)))?;
+        let first = chars.next().ok_or_else(|| {
+            Error::expecting(format!("char '{}'", self), tail)
+        })?;
 
         if first == *self {
             let tail = chars.as_str();
 
             Ok((first, tail))
         } else {
-            Err(Error::expecting(format!("char '{}'", self)))
+            Err(Error::expecting(format!("char '{}'", self), tail))
         }
     }
 }
@@ -65,10 +65,10 @@ impl Parser for CharRange {
     fn p_arse<'a>(&self, tail: &'a str) -> Result<'a, Self::Output> {
         let mut chars = tail.chars();
         let first = chars.next().ok_or_else(|| {
-            Error::expecting(format!(
-                "char from '{}' to '{}'",
-                self.from, self.to
-            ))
+            Error::expecting(
+                format!("char from '{}' to '{}'", self.from, self.to),
+                tail,
+            )
         })?;
 
         if (self.from..=self.to).contains(&first) {
@@ -76,10 +76,10 @@ impl Parser for CharRange {
 
             Ok((first, tail))
         } else {
-            Err(Error::expecting(format!(
-                "char from '{}' to '{}'",
-                self.from, self.to
-            )))
+            Err(Error::expecting(
+                format!("char from '{}' to '{}'", self.from, self.to),
+                tail,
+            ))
         }
     }
 }

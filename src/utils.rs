@@ -13,7 +13,8 @@ impl Parser for any {
 
     fn p_arse<'a>(&self, tail: &'a str) -> Result<'a, Self::Output> {
         let mut chars = tail.chars();
-        let first = chars.next().ok_or_else(|| Error::expecting("any"))?;
+        let first =
+            chars.next().ok_or_else(|| Error::expecting("any", tail))?;
         let tail = chars.as_str();
 
         Ok((first, tail))
@@ -44,7 +45,7 @@ impl Parser for eoi {
         if tail.is_empty() {
             Ok(((), tail))
         } else {
-            Err(Error::expecting("eoi"))
+            Err(Error::expecting("eoi", tail))
         }
     }
 }

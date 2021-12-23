@@ -1,6 +1,6 @@
 //! The core functionality.
 
-use std::marker::PhantomData;
+use std::{fmt::Debug, marker::PhantomData};
 
 use crate::{wrapper::*, Result};
 
@@ -238,20 +238,17 @@ pub trait Parser: Sized + Copy {
         Named { parser: self, name }
     }
 
-    fn turn<'t, T>(self, value: &'t T) -> TurnInto<'t, Self, T>
-    where
-        T: Clone,
-    {
-        TurnInto {
-            parser: self,
-            value,
-        }
-    }
-
     fn maps<F, T>(self, f: F) -> MapStr<Self, F, T>
     where
         F: Fn(&str) -> T + Copy,
     {
         MapStr { parser: self, f }
+    }
+
+    fn dbg(self) -> Debugged<Self>
+    where
+        Self::Output: Debug,
+    {
+        Debugged { parser: self }
     }
 }

@@ -1,4 +1,4 @@
-use std::marker::PhantomData;
+use std::{fmt::Debug, marker::PhantomData};
 
 use crate::{parser::Parser, Error, Result};
 
@@ -267,7 +267,7 @@ where
             Ok(((), tail))
         } else {
             // TODO what to put here?
-            Err(Error::expecting("negative lookahead"))
+            Err(Error::expecting("negative lookahead", tail))
         }
     }
 }
@@ -303,7 +303,7 @@ where
             Ok(((), tail))
         } else {
             // TODO what to put here?
-            Err(Error::expecting("positive lookahead"))
+            Err(Error::expecting("positive lookahead", tail))
         }
     }
 }
@@ -338,50 +338,6 @@ where
 
     fn p_arse<'a>(&self, tail: &'a str) -> Result<'a, Self::Output> {
         self.parser.p_arse(tail).map_err(|err| err.push(self.name))
-    }
-}
-
-pub struct TurnInto<'t, P, T>
-where
-    P: Parser,
-    T: Clone,
-{
-    pub(crate) parser: P,
-    pub(crate) value: &'t T,
-}
-
-impl<'t, P, T> Clone for TurnInto<'t, P, T>
-where
-    P: Parser,
-    T: Clone,
-{
-    fn clone(&self) -> Self {
-        Self {
-            parser: self.parser,
-            value: self.value,
-        }
-    }
-}
-
-impl<'t, P, T> Copy for TurnInto<'t, P, T>
-where
-    P: Parser,
-    T: Clone,
-{
-}
-
-
-impl<'t, P, T> Parser for TurnInto<'t, P, T>
-where
-    P: Parser,
-    T: Clone,
-{
-    type Output = T;
-
-    fn p_arse<'a>(&self, tail: &'a str) -> Result<'a, Self::Output> {
-        self.parser
-            .p_arse(tail)
-            .map(|(_, tail)| (self.value.clone(), tail))
     }
 }
 
@@ -433,5 +389,26 @@ where
             }
             Err(err) => Err(err),
         }
+    }
+}
+
+#[derive(Copy, Clone)]
+pub struct Debugged<P>
+where
+    P: Parser,
+    P::Output: Debug,
+{
+    pub(crate) parser: P,
+}
+
+impl<P> Parser for Debugged<P>
+where
+    P: Parser,
+    P::Output: Debug,
+{
+    type Output = P::Output;
+
+    fn p_arse<'a>(&self, tail: &'a str) -> Result<'a, Self::Output> {
+        dbg!(self.parser.p_arse(tail))
     }
 }

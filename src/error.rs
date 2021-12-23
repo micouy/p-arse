@@ -2,19 +2,21 @@
 
 /// Main error.
 #[derive(Debug)]
-pub struct Error {
+pub struct Error<'a> {
     pub stack: Vec<&'static str>,
     expectation: String,
+    tail: &'a str,
 }
 
-impl Error {
-    pub(crate) fn expecting<S>(expectation: S) -> Self
+impl<'a> Error<'a> {
+    pub(crate) fn expecting<S>(expectation: S, tail: &'a str) -> Self
     where
         S: Into<String>,
     {
         Error {
             stack: vec![],
             expectation: expectation.into(),
+            tail,
         }
     }
 
@@ -25,4 +27,4 @@ impl Error {
     }
 }
 
-pub type Result<'a, T> = std::result::Result<(T, &'a str), Error>;
+pub type Result<'a, T> = std::result::Result<(T, &'a str), Error<'a>>;
