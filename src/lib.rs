@@ -67,8 +67,7 @@
 //! IENY
 //! ```
 
-mod sequence; // No exports, impls only.
-
+pub mod sequence;
 pub mod error;
 pub mod function;
 pub mod literal;
@@ -82,4 +81,5 @@ pub use crate::{
     literal::CharExt,
     parser::Parser,
     utils::{any, eoi},
+	sequence::TupleExt,
 };

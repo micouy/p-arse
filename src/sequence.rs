@@ -8,12 +8,12 @@ impl<P0> Parser for (P0,)
 where
     P0: Parser,
 {
-    type Output = (P0::Output,);
+    type Output = P0::Output;
 
     fn p_arse<'a>(&self, tail: &'a str) -> Result<'a, Self::Output> {
         let (output_0, tail) = self.0.p_arse(tail)?;
 
-        Ok(((output_0,), tail))
+        Ok((output_0, tail))
     }
 }
 
@@ -120,4 +120,113 @@ where
             tail,
         ))
     }
+}
+
+use duple::prelude::*;
+
+pub trait TupleExt: Parser {
+	fn rem0(self) -> Remove0<Self> where Self::Output: TupleRemove0 {
+		Remove0 { parser: self }
+	}
+
+	fn rem1(self) -> Remove1<Self> where Self::Output: TupleRemove1 {
+		Remove1 { parser: self }
+	}
+
+	fn rem2(self) -> Remove2<Self> where Self::Output: TupleRemove2 {
+		Remove2 { parser: self }
+	}
+
+	fn rem3(self) -> Remove3<Self> where Self::Output: TupleRemove3 {
+		Remove3 { parser: self }
+	}
+
+	fn rem4(self) -> Remove4<Self> where Self::Output: TupleRemove4 {
+		Remove4 { parser: self }
+	}
+
+	fn rem5(self) -> Remove5<Self> where Self::Output: TupleRemove5 {
+		Remove5 { parser: self }
+	}
+}
+
+impl<P> TupleExt for P where P: Parser {
+}
+
+#[derive(Copy, Clone)]
+pub struct Remove0<P> where P: Parser, P::Output: TupleRemove0 {
+	parser: P,
+}
+
+impl<P> Parser for Remove0<P> where P: Parser, P::Output: TupleRemove0 {
+	type Output = <<P as Parser>::Output as TupleRemove0>::Removed;
+
+	fn p_arse<'a>(&self, input: &'a str) -> Result<'a, Self::Output> {
+		self.parser.p_arse(input).map(|(tuple, tail)| (tuple.rem0(), tail))
+	}
+}
+
+#[derive(Copy, Clone)]
+pub struct Remove1<P> where P: Parser, P::Output: TupleRemove1 {
+	parser: P,
+}
+
+impl<P> Parser for Remove1<P> where P: Parser, P::Output: TupleRemove1 {
+	type Output = <<P as Parser>::Output as TupleRemove1>::Removed;
+
+	fn p_arse<'a>(&self, input: &'a str) -> Result<'a, Self::Output> {
+		self.parser.p_arse(input).map(|(tuple, tail)| (tuple.rem1(), tail))
+	}
+}
+
+#[derive(Copy, Clone)]
+pub struct Remove2<P> where P: Parser, P::Output: TupleRemove2 {
+	parser: P,
+}
+
+impl<P> Parser for Remove2<P> where P: Parser, P::Output: TupleRemove2 {
+	type Output = <<P as Parser>::Output as TupleRemove2>::Removed;
+
+	fn p_arse<'a>(&self, input: &'a str) -> Result<'a, Self::Output> {
+		self.parser.p_arse(input).map(|(tuple, tail)| (tuple.rem2(), tail))
+	}
+}
+
+#[derive(Copy, Clone)]
+pub struct Remove3<P> where P: Parser, P::Output: TupleRemove3 {
+	parser: P,
+}
+
+impl<P> Parser for Remove3<P> where P: Parser, P::Output: TupleRemove3 {
+	type Output = <<P as Parser>::Output as TupleRemove3>::Removed;
+
+	fn p_arse<'a>(&self, input: &'a str) -> Result<'a, Self::Output> {
+		self.parser.p_arse(input).map(|(tuple, tail)| (tuple.rem3(), tail))
+	}
+}
+
+#[derive(Copy, Clone)]
+pub struct Remove4<P> where P: Parser, P::Output: TupleRemove4 {
+	parser: P,
+}
+
+impl<P> Parser for Remove4<P> where P: Parser, P::Output: TupleRemove4 {
+	type Output = <<P as Parser>::Output as TupleRemove4>::Removed;
+
+	fn p_arse<'a>(&self, input: &'a str) -> Result<'a, Self::Output> {
+		self.parser.p_arse(input).map(|(tuple, tail)| (tuple.rem4(), tail))
+	}
+}
+
+#[derive(Copy, Clone)]
+pub struct Remove5<P> where P: Parser, P::Output: TupleRemove5 {
+	parser: P,
+}
+
+impl<P> Parser for Remove5<P> where P: Parser, P::Output: TupleRemove5 {
+	type Output = <<P as Parser>::Output as TupleRemove5>::Removed;
+
+	fn p_arse<'a>(&self, input: &'a str) -> Result<'a, Self::Output> {
+		self.parser.p_arse(input).map(|(tuple, tail)| (tuple.rem5(), tail))
+	}
 }

@@ -2,12 +2,12 @@
 use p_arse::{
     any,
     fun,
-    function::{Rec, RecursiveFunction},
+    function::{Rec},
     rec,
     CharExt,
+	TupleExt,
     Fun,
     Parser,
-    Result,
 };
 
 #[test]
@@ -17,7 +17,7 @@ fn test_any() {
 }
 
 #[test]
-fn test_literals() {
+fn test_literal() {
     let just_a = 'a'; // "a"
     assert!(just_a.p_arse("a").is_ok());
     assert!(just_a.p_arse("b").is_err());
@@ -28,7 +28,7 @@ fn test_literals() {
 }
 
 #[test]
-fn test_sequences() {
+fn test_sequence() {
     let a = ("a",); // "a"
     assert!(a.p_arse("a").is_ok());
     assert!(a.p_arse("x").is_err());
@@ -40,6 +40,28 @@ fn test_sequences() {
     let abc = ("a", "b", "c"); // "a" "b" "c"
     assert!(abc.p_arse("abc").is_ok());
     assert!(abc.p_arse("xxx").is_err());
+}
+
+#[test]
+fn test_sequence_remove() {
+	let collect_string = |text: Vec<char>| text.iter().collect::<String>();
+
+	let ws = ' '.zore().ignore();
+	let text = 'a'.to('z').more();
+	let paragraph = (ws, text, ws).rem2().rem0().map(collect_string);
+
+	let (text, _tail) = paragraph.p_arse("    text    ").unwrap();
+	assert_eq!(text, "text");
+}
+
+#[test]
+fn test_maps_after_rem() {
+	let ws = ' '.zore().ignore();
+	let text = 'a'.to('z').more();
+	let paragraph = (ws, text, ws).rem2().rem0().maps(|s| s.to_string());
+
+	let (text, _tail) = paragraph.p_arse("    text    ").unwrap();
+	assert_eq!(text, "text");
 }
 
 #[test]
@@ -73,7 +95,7 @@ fn test_repetition() {
 }
 
 #[test]
-fn test_lookaheads() {
+fn test_lookahead() {
     let a_ahead = "a".ahead(); // &"a"
     assert!(a_ahead.p_arse("aaa").is_ok());
     assert!(a_ahead.p_arse("bbb").is_err());
@@ -93,7 +115,7 @@ fn test_named() {
 }
 
 #[test]
-fn test_functions() {
+fn test_function() {
     // Recursive terminals.
 
     // A = "a" A?

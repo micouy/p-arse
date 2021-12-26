@@ -5,3 +5,4 @@ edition = "2018"
 license = "GPL-3.0"
 
 [dependencies]
+duple = { git = "https://github.com/micouy/duple", rev = "24dd106" }
