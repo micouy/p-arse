@@ -16,4 +16,4 @@ categories = ["parsing"]
 keywords = ["parser", "parsing", "peg"]
 
 [dependencies]
-duple = { git = "https://github.com/micouy/duple", rev = "24dd106" }
+duple = { git = "https://github.com/micouy/duple", rev = "24dd106", version = "0.1.0" }
