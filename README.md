@@ -2,6 +2,8 @@
 
 `p-arse` is a [PEG](https://en.wikipedia.org/wiki/Parsing_expression_grammar) parser library focused on readability and type safety • it follows the syntax from the [original paper][paper] as closely as possible • the parsers are point-free (they're (mostly) variables, not functions), as opposed to [`nom`][nom]'s parsers which are functions or compositions of functions • this encourages the user to bind and name many intermediate parsers • it is similar to [`pest`][pest] in this regard
 
+warning: the project is in an early stage
+
 
 ## example
 
