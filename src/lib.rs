@@ -67,11 +67,11 @@
 //! IENY
 //! ```
 
-pub mod sequence;
 pub mod error;
 pub mod function;
 pub mod literal;
 pub mod parser;
+pub mod sequence;
 pub mod utils;
 pub mod wrapper;
 
@@ -80,6 +80,6 @@ pub use crate::{
     function::{fun, rec, Fun},
     literal::CharExt,
     parser::Parser,
+    sequence::TupleExt,
     utils::{any, eoi},
-	sequence::TupleExt,
 };

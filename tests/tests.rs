@@ -1,14 +1,5 @@
 #![feature(box_syntax)]
-use p_arse::{
-    any,
-    fun,
-    function::{Rec},
-    rec,
-    CharExt,
-	TupleExt,
-    Fun,
-    Parser,
-};
+use p_arse::{any, fun, function::Rec, rec, CharExt, Fun, Parser, TupleExt};
 
 #[test]
 fn test_any() {
@@ -44,24 +35,24 @@ fn test_sequence() {
 
 #[test]
 fn test_sequence_remove() {
-	let collect_string = |text: Vec<char>| text.iter().collect::<String>();
+    let collect_string = |text: Vec<char>| text.iter().collect::<String>();
 
-	let ws = ' '.zore().ignore();
-	let text = 'a'.to('z').more();
-	let paragraph = (ws, text, ws).rem2().rem0().map(collect_string);
+    let ws = ' '.zore().ignore();
+    let text = 'a'.to('z').more();
+    let paragraph = (ws, text, ws).rem2().rem0().map(collect_string);
 
-	let (text, _tail) = paragraph.p_arse("    text    ").unwrap();
-	assert_eq!(text, "text");
+    let (text, _tail) = paragraph.p_arse("    text    ").unwrap();
+    assert_eq!(text, "text");
 }
 
 #[test]
 fn test_maps_after_rem() {
-	let ws = ' '.zore().ignore();
-	let text = 'a'.to('z').more();
-	let paragraph = (ws, text, ws).rem2().rem0().maps(|s| s.to_string());
+    let ws = ' '.zore().ignore();
+    let text = 'a'.to('z').more();
+    let paragraph = (ws, text, ws).rem2().rem0().maps(|s| s.to_string());
 
-	let (text, _tail) = paragraph.p_arse("    text    ").unwrap();
-	assert_eq!(text, "text");
+    let (text, _tail) = paragraph.p_arse("    text    ").unwrap();
+    assert_eq!(text, "text");
 }
 
 #[test]
