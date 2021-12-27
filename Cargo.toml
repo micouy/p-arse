@@ -1,7 +1,7 @@
 [package]
 name = "p-arse"
 authors = ["micouy <m.powierza@tutanota.com>"]
-version = "0.1.0"
+version = "0.0.1"
 edition = "2018"
 license = "GPL-3.0"
 include = [
@@ -16,4 +16,4 @@ categories = ["parsing"]
 keywords = ["parser", "parsing", "peg"]
 
 [dependencies]
-duple = { git = "https://github.com/micouy/duple", rev = "24dd106", version = "0.1.0" }
+duple = "0.0.1"
