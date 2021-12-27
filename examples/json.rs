@@ -8,6 +8,7 @@ use p_arse::{
     rec,
     CharExt,
     Parser,
+    TupleExt,
 };
 
 #[derive(Debug)]
@@ -59,9 +60,8 @@ fn main() {
             .or('r'.map(|_| '\r'))
             .or('t'.map(|_| '\t'));
 
-        let escape_sequence = ('\\', special).map(|(_, special)| special);
-        let not_escape_or_ending =
-            ('"'.or('\\').not_ahead(), any()).map(|(_, c)| c);
+        let escape_sequence = ('\\', special).r0();
+        let not_escape_or_ending = ('"'.or('\\').not_ahead(), any()).r0();
         let string = (
             '"',
             not_escape_or_ending
@@ -70,13 +70,16 @@ fn main() {
                 .maps(|s| s.to_string()),
             '"',
         )
-            .map(|(_, content, _)| content);
+            .r2()
+            .r0();
 
         string
     };
 
     let ws = ' '.or('\n').or('\t').zore().ignore();
 
+    // Waiting for #86921 to be resolved so that this function can be replaced
+    // with a closure with its arg types and lifetimes inferred.
     fn array<'a>(
         value: RecursiveFunction<'a, Result<Json>>,
         ws: impl Parser<Output = ()> + 'a,
@@ -84,17 +87,18 @@ fn main() {
         let collect_elements =
             |(first, rest)| once(first).chain(rest).collect::<Result<Array>>();
 
-        let element = (ws, value, ws).map(|(_, value, _)| value);
-        let rest = (',', element).map(|(_, element)| element).zore();
+        let element = (ws, value, ws).r2().r0();
+        let rest = (',', element).r0().zore();
         let elements = (element, rest).map(collect_elements);
         let empty_array = ('[', ws, ']').map(|_| Ok(Array::new()));
-        let non_empty_array =
-            ('[', elements, ']').map(|(_, elements, _)| elements);
+        let non_empty_array = ('[', elements, ']').r2().r0();
         let array = empty_array.or(non_empty_array);
 
         array
     }
 
+    // Waiting for #86921 to be resolved so that this function can be replaced
+    // with a closure with its arg types and lifetimes inferred.
     fn object<'a>(
         string: impl Parser<Output = String> + 'a,
         value: RecursiveFunction<'a, Result<Json>>,
@@ -103,14 +107,16 @@ fn main() {
         let collect_members =
             |(first, rest)| once(first).chain(rest).collect::<Result<Object>>();
 
-        let element = (ws, value, ws).map(|(_, value, _)| value);
+        let element = (ws, value, ws).r2().r0();
         let member = (ws, string, ws, ':', element)
-            .map(|(_, string, _, _, element)| Ok((string, element?)));
-        let rest = (',', member).map(|(_, member)| member).zore();
+            .r3()
+            .r2()
+            .r0()
+            .map(|(string, element)| Ok((string, element?)));
+        let rest = (',', member).r0().zore();
         let members = (member, rest).map(collect_members);
         let empty_object = ('{', ws, '}').map(|_| Ok(Object::new()));
-        let non_empty_object =
-            ('{', members, '}').map(|(_, members, _)| members);
+        let non_empty_object = ('{', members, '}').r2().r0();
         let object = empty_object.or(non_empty_object);
 
         object
@@ -128,7 +134,7 @@ fn main() {
     };
     let value = rec(value);
 
-    let json = (ws, value, ws).map(|(_, value, _)| value);
+    let json = (ws, value, ws).r2().r0();
 
     let input = r#"
 	{

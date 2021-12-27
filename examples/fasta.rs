@@ -1,43 +1,37 @@
-use p_arse::{any, eoi, CharExt, Parser};
+use p_arse::{any, eoi, CharExt, Parser, TupleExt};
 
 fn main() {
     let nl = '\n';
 
     let header = {
-        let parse_header = |(_, header, _): (_, Vec<(_, char)>, _)| {
-            header.iter().map(|((), c)| c).collect::<String>()
-        };
-
-        let header_content = (nl.not_ahead(), any()).more();
+        let header_content =
+            (nl.not_ahead(), any()).r0().more().maps(|s| s.to_string());
         let header_tag = ">";
+        let header = (header_tag, header_content, nl).r2().r0();
 
-        (header_tag, header_content, nl).map(parse_header)
+        header
     };
 
     let sequence = {
-        let concat_subsequence = |cs: Vec<char>| cs.iter().collect::<String>();
-        let parse_sequence =
-            |(first, tail, _nls): (String, Vec<(_, String)>, _)| {
-                let mut sequence = first;
-                tail.into_iter().for_each(|(_nl, subsequence)| {
-                    sequence.push_str(&subsequence)
-                });
+        let parse_sequence = |(first, tail): (String, Vec<String>)| {
+            let mut sequence = first;
+            tail.into_iter()
+                .for_each(|subsequence| sequence.push_str(&subsequence));
 
-                sequence
-            };
+            sequence
+        };
+
         let sequence_char = ('A'.to('Z')).or('*').or('-');
-        let subsequence = sequence_char.more().map(concat_subsequence);
+        let subsequence = sequence_char.more().maps(|s| s.to_string());
+        let sequence = (subsequence, (nl, subsequence).r0().zore(), nl.zore())
+            .r2()
+            .map(parse_sequence);
 
-        (subsequence, (nl, subsequence).zore(), nl.zore()).map(parse_sequence)
+        sequence
     };
 
     let entry = (header, sequence);
-
-    let file = {
-        let parse_file = |(_, entries, _)| entries;
-
-        (nl.zore(), entry.zore(), eoi()).map(parse_file)
-    };
+    let file = (nl.zore(), entry.zore(), eoi()).r2().r0();
 
     // `\` at the end of the line in string means 'ignore following whitespace'.
     let fasta = "\

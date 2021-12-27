@@ -1,6 +1,6 @@
-use std::iter::FromIterator;
+// use std::iter::FromIterator;
 
-use p_arse::{CharExt, Parser};
+use p_arse::{CharExt, Parser, TupleExt};
 
 #[derive(Debug)]
 struct Color {
@@ -10,16 +10,14 @@ struct Color {
 }
 
 fn main() {
-    let parse_hex_dd = |(c1, c2): (char, char)| {
-        u8::from_str_radix(&String::from_iter([c1, c2]), 16).unwrap()
-    };
-    let construct_color = |(_, r, g, b)| Color { r, g, b };
+    let parse_hex_dd = |s: &str| u8::from_str_radix(s, 16).unwrap();
+    let construct_color = |(r, g, b)| Color { r, g, b };
 
     let hex_d = ('0'.to('9')).or('a'.to('f'));
-    let hex_dd = (hex_d, hex_d).map(parse_hex_dd);
-    let color = ("#", hex_dd, hex_dd, hex_dd).map(construct_color);
+    let hex_dd = (hex_d, hex_d).maps(parse_hex_dd);
+    let color = ("#", hex_dd, hex_dd, hex_dd).r0().map(construct_color);
 
-    let (color, _tail): (Color, _) = color.p_arse("#defec8").unwrap();
+    let (color, _tail) = color.p_arse("#defec8").unwrap();
 
     dbg!(&color);
 

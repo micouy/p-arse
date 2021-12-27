@@ -1,47 +1,41 @@
-# `( ㅅ )`
+# `p-( ㅅ )`
 
 > `p-arse` — the inelegant parser
 
 
-**parsers**
+## description
 
-- [x] empty string (covered by string slices)
-- [ ] terminals
-  - [x] string slices (`"abc"`)
-  - [x] chars (`'A'`)
-  - [x] char ranges (`'a'.to('z')`)
-  - [ ] regex, other `Pattern`s (?)
-- [x] non-terminals i.e. parser functions, including recursive functions
-  ```
-  fn a_string(tail: &str) -> Result<'_, ()> {
-      ('a', a_string.opt())
-          .ignore()
-          .parse(tail)
-  }
-  ```
-- [x] sequences (`(a, b, c)`)
-- [x] prioritized choice (`a.or(b)`)
-- [x] zero or more repetitions (`a.zore()`)
-- [x] not-predicate (`a.not_ahead()`, looking for a more concise name)
-- [x] end of input (`eoi()`)
-- [x] syntactic sugar
-  - [x] any (`any()`)
-  - [x] one or more repetitions (`a.more()`)
-  - [x] optionals (`a.opt()`)
-  - [x] and-predicate (`a.ahead()`, looking for a more concise name)
+`p-arse` is a [PEG](https://en.wikipedia.org/wiki/Parsing_expression_grammar) parser library focused on readability and type safety • it follows the syntax from the [original paper](https://bford.info/pub/lang/peg.pdf) as closely as possible • the parsers are point-free (they're (mostly) variables, not functions), as opposed to [`nom`][nom]'s parsers which are functions or compositions of functions • this encourages the user to bind and name many intermediate parsers • it is similar to [`pest`][pest] in this regard
 
 
-**todo**
+## example
 
-- [ ] add docs on capturing the environment with `rec` and `fun`.
-- [ ] add `.and_then()` (`.and()`?) for further processing that might fail
-- [ ] add error messages with parsing stack
-- [ ] make each parser return the whole string slice it has captured (its children's captures concatenated)
-- [ ] add a method that would parse and return only the parsed value (?)
-- [x] fix impl Parser for F and for &P (conflicting)
-- [x] add docs
+```rust
+let parse_hex_dd = |s: &str| {
+    u8::from_str_radix(s, 16).unwrap()
+};
+let construct_color = |(r, g, b)| Color { r, g, b };
+
+let hex_d = ('0'.to('9')).or('a'.to('f'));
+let hex_dd = (hex_d, hex_d).maps(parse_hex_dd);
+let color = ("#", hex_dd, hex_dd, hex_dd).r0().map(construct_color);
+
+let (color, _tail) = color.p_arse("#defec8").unwrap();
+```
+
+check out [other examples](examples/) • i've replicated examples from other parser libaries, i.e. [`nom`'s hex color](https://github.com/Geal/nom#example) ([mine](examples/hex_color.rs)) and [`pest`'s ident list](https://github.com/pest-parser/pest#example) ([mine](examples/ident.rs))
 
 
-**reference**
+## todo
 
-1. https://bford.info/pub/lang/peg.pdf
+- [ ] add docs
+- [ ] add verbose error messages
+- [ ] allow access to the string slice captured by the parser (its children's captures concatenated) (kinda works, except where `.rn()` is used)
+
+
+## reference
+
+1. [https://bford.info/pub/lang/peg.pdf]
+
+[nom]: https://github.com/Geal/nom 
+[pest]: https://github.com/pest-parser/pest
