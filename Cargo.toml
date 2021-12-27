@@ -1,6 +1,8 @@
 [package]
 name = "p-arse"
 authors = ["micouy <m.powierza@tutanota.com>"]
+description = "the inelegant parser"
+repository = "https://github.com/micouy/p-arse"
 version = "0.0.1"
 edition = "2018"
 license = "GPL-3.0"
