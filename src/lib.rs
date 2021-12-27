@@ -1,11 +1,12 @@
 #![feature(pattern, fn_traits, str_split_inclusive_as_str)]
 
+//! **WARNING**: Thorough documentation is one of the goals. However, at the moment it's not near completion. This is an early version
+//! and many things may change in the near future. The documentation will be improved as the crate matures.
+//!
 //! # `( ㅅ )` the inelegant parser
 //!
 //! `p-arse` is a PEG parser library. It provides [`Parser`] trait with
 //! methods corresponding to PEG parsers and some basic [`utils`].
-//!
-//! **WARNING**: Error handling has not been implemented yet.
 //!
 //! The main focus of this library is simple syntax, type safety and easy
 //! debugging. It attempts to follow the original PEG syntax as closely as
