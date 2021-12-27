@@ -125,42 +125,42 @@ where
 }
 
 pub trait TupleExt: Parser {
-    fn rem0(self) -> Remove0<Self>
+    fn r0(self) -> Remove0<Self>
     where
         Self::Output: TupleRemove0,
     {
         Remove0 { parser: self }
     }
 
-    fn rem1(self) -> Remove1<Self>
+    fn r1(self) -> Remove1<Self>
     where
         Self::Output: TupleRemove1,
     {
         Remove1 { parser: self }
     }
 
-    fn rem2(self) -> Remove2<Self>
+    fn r2(self) -> Remove2<Self>
     where
         Self::Output: TupleRemove2,
     {
         Remove2 { parser: self }
     }
 
-    fn rem3(self) -> Remove3<Self>
+    fn r3(self) -> Remove3<Self>
     where
         Self::Output: TupleRemove3,
     {
         Remove3 { parser: self }
     }
 
-    fn rem4(self) -> Remove4<Self>
+    fn r4(self) -> Remove4<Self>
     where
         Self::Output: TupleRemove4,
     {
         Remove4 { parser: self }
     }
 
-    fn rem5(self) -> Remove5<Self>
+    fn r5(self) -> Remove5<Self>
     where
         Self::Output: TupleRemove5,
     {

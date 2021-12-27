@@ -39,7 +39,7 @@ fn test_sequence_remove() {
 
     let ws = ' '.zore().ignore();
     let text = 'a'.to('z').more();
-    let paragraph = (ws, text, ws).rem2().rem0().map(collect_string);
+    let paragraph = (ws, text, ws).r2().r0().map(collect_string);
 
     let (text, _tail) = paragraph.p_arse("    text    ").unwrap();
     assert_eq!(text, "text");
@@ -47,9 +47,11 @@ fn test_sequence_remove() {
 
 #[test]
 fn test_maps_after_rem() {
+    // Doesn't work yet.
+
     let ws = ' '.zore().ignore();
     let text = 'a'.to('z').more();
-    let paragraph = (ws, text, ws).rem2().rem0().maps(|s| s.to_string());
+    let paragraph = (ws, text, ws).r2().r0().maps(|s| s.to_string());
 
     let (text, _tail) = paragraph.p_arse("    text    ").unwrap();
     assert_eq!(text, "text");
