@@ -20,7 +20,7 @@ let color = ("#", hex_dd, hex_dd, hex_dd).r0().map(construct_color);
 let (color, _tail) = color.p_arse("#defec8").unwrap();
 ```
 
-check out [other examples](examples/) • i've some replicated examples from the other parser libaries, i.e. [`nom`'s hex color](https://github.com/Geal/nom#example) ([mine](examples/hex_color.rs)), [`pest`'s ident list](https://github.com/pest-parser/pest#example) ([mine](examples/ident.rs)) and [`pom`'s json](https://github.com/j-f-liu/pom#example-json-parser) ([mine](examples/json.rs))
+check out [other examples](examples/) • i've replicated some examples from the other parser libaries, i.e. [`nom`'s hex color](https://github.com/Geal/nom#example) ([mine](examples/hex_color.rs)), [`pest`'s ident list](https://github.com/pest-parser/pest#example) ([mine](examples/ident.rs)) and [`pom`'s json](https://github.com/j-f-liu/pom#example-json-parser) ([mine](examples/json.rs))
 
 
 ## todo
